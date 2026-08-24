@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40" role="img" aria-labelledby="title">
+  <title>RSS</title>
+  <circle cx="20" cy="20" r="18" fill="#f3efd9" stroke="#b9a46e" stroke-width="1.5"/>
+  <circle cx="14" cy="27" r="2.5" fill="#49654f"/>
+  <path fill="none" stroke="#49654f" stroke-linecap="round" stroke-width="3" d="M12 19c5 0 9 4 9 9M12 12c8.84 0 16 7.16 16 16"/>
+</svg>
