@@ -2,14 +2,16 @@ FROM node:22-alpine AS builder
 
 WORKDIR /app
 
-COPY package*.json ./
-RUN npm ci
-
+# 先复制完整 Nuxt 项目
 COPY . .
 
-# Nuxt config uses production defaults while generating the server bundle.
+# 安装依赖
+RUN npm ci
+
+# 构建 Nuxt
 ENV NODE_ENV=production
 RUN npm run build
+
 
 FROM node:22-alpine AS runner
 

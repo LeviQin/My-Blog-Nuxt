@@ -2,9 +2,10 @@ node_modules
 .nuxt
 .output
 .git
+.gitignore
+Dockerfile
+docker-compose.yml
+npm-debug.log*
+.DS_Store
 .env
 .env.*
-!.env.example
-127.0.0.1
-*.log
-.DS_Store
