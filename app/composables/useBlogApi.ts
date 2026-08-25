@@ -31,6 +31,9 @@ export function useBlogApi() {
     settings: async () => request<SiteSetting | SiteSetting[]>('blog-setting/settings', { query: { key: 'levi-blog' } }),
     links: async () => request<Link[]>('links/link'),
     projects: async () => request<BlogProject[]>('blog-projects/projects'),
+    cityCode: async (cityName: string) => request<any>('tools/cityCode', { method: 'POST', body: { cityName } }),
+    weatherInfo: async (cityCode: string) => request<any>('tools/weatherInfo', { method: 'POST', body: { cityCode } }),
+    identifyIpArea: async (ip?: string) => request<any>('tools/identifyIpArea', { method: 'POST', body: ip ? { ip } : {} }),
     like: async (articleId: number) => request<unknown>('articles/likes', { method: 'POST', body: { id: articleId } }),
     submitMessage: async (body: Record<string, unknown>) => request<unknown>('message/messages', { method: 'POST', body }),
   }

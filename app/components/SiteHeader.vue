@@ -47,7 +47,7 @@ const router = useRouter()
 const secretOpen = ref(false)
 const navItems = [
   { label: '首页', to: '/' }, { label: '文章', to: '/articles' }, { label: '归档', to: '/archive' },
-  { label: '作品', to: '/portfolio' }, { label: '友链', to: '/links' }, { label: '联系站长', to: '/guestbook' }, { label: '关于', to: '/about' },
+  { label: '作品', to: '/portfolio' }, { label: '友链', to: '/links' }, { label: '实验室', to: '/lab' }, { label: '联系', to: '/guestbook' }, { label: '关于', to: '/about' },
 ]
 function submitSearch() { const value = keyword.value.trim(); if (value) router.push({ path: '/search', query: { keyword: value } }); open.value = false }
 

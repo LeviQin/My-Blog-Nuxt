@@ -3,7 +3,7 @@
     <div class="container footer-inner">
       <NightNote />
       <span v-if="settings.blog_record_name">{{ settings.blog_record_name }}</span>
-      <span v-if="settings.blog_record_number">{{ settings.blog_record_number }}</span>
+      <a v-if="settings.blog_record_number" href="https://beian.miit.gov.cn/" target="_blank" rel="noopener noreferrer" aria-label="在工信部备案查询系统查看备案信息">{{ settings.blog_record_number }}</a>
       <NuxtLink class="footer-lab-link" to="/lab">Levi Lab</NuxtLink>
       <span class="footer-status" :class="{ 'is-offline': serviceAvailable === false }" :title="serviceAvailable === false ? '博客服务暂时不可用' : '博客服务运行正常'">
         <span class="footer-status-dot" aria-hidden="true"></span>{{ serviceAvailable === false ? '服务异常' : '服务正常' }}

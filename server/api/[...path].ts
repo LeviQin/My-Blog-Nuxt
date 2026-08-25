@@ -12,6 +12,12 @@ export default defineEventHandler(async (event): Promise<unknown> => {
     },
   }
 
+  const clientIp = getRequestIP(event, { xForwardedFor: true })
+  if (clientIp) {
+    ;(requestOptions.headers as Record<string, string>)['x-forwarded-for'] = clientIp
+    ;(requestOptions.headers as Record<string, string>)['x-real-ip'] = clientIp
+  }
+
   const authorization = getHeader(event, 'authorization')
 
   if (authorization) {

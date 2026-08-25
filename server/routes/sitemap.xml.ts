@@ -33,6 +33,10 @@ export default defineEventHandler(async (event) => {
   add('/lab/image')
   add('/lab/cover')
   add('/lab/color')
+  add('/lab/weather')
+  add('/lab/ip')
+  add('/lab/qr')
+  add('/lab/dev')
 
   async function fetchApi<T>(path: string) {
     try {

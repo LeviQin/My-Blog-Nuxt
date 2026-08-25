@@ -19,6 +19,7 @@ export function cleanFileName(value: string, fallback = 'levi-lab') {
 export function containSize(sourceWidth: number, sourceHeight: number, mode: string, values: { width?: number; height?: number }) {
   if (mode === 'max-width' && values.width && sourceWidth > values.width) return { width: values.width, height: Math.max(1, Math.round(values.width * sourceHeight / sourceWidth)) }
   if (mode === 'max-height' && values.height && sourceHeight > values.height) return { width: Math.max(1, Math.round(values.height * sourceWidth / sourceHeight)), height: values.height }
+  if (mode === 'custom' && values.width && values.height) return { width: values.width, height: values.height }
   if (mode === 'exact' && values.width && values.height) {
     const ratio = Math.min(values.width / sourceWidth, values.height / sourceHeight)
     return { width: Math.max(1, Math.round(sourceWidth * ratio)), height: Math.max(1, Math.round(sourceHeight * ratio)) }

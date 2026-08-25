@@ -453,6 +453,19 @@ h3 {
   border-radius: var(--radius);
   background: var(--card);
   box-shadow: var(--shadow);
+  transform-origin: 50% 100%;
+  transition: transform .28s ease, box-shadow .28s ease;
+}
+
+.article-card:hover,
+.article-card:focus-within {
+  transform: translateY(-5px) rotate(-.28deg);
+  box-shadow: 0 22px 42px color-mix(in srgb, var(--forest) 14%, transparent);
+}
+
+.article-card:nth-child(even):hover,
+.article-card:nth-child(even):focus-within {
+  transform: translateY(-5px) rotate(.28deg);
 }
 
 .article-card-image {
@@ -513,6 +526,24 @@ h3 {
 .article-card h2 {
   margin: 11px 0 9px;
   font-size: 1.28rem;
+}
+
+.article-card h2 a,
+.journal-article-body h3 a {
+  background-image: linear-gradient(102deg, transparent 0%, color-mix(in srgb, var(--apricot) 74%, transparent) 18%, color-mix(in srgb, var(--sage) 66%, transparent) 54%, color-mix(in srgb, var(--apricot) 72%, transparent) 100%);
+  background-position: 0 93%;
+  background-repeat: no-repeat;
+  background-size: 0 42%;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+  transition: background-size .35s ease;
+}
+
+.article-card h2 a:hover,
+.article-card h2 a:focus-visible,
+.journal-article-body h3 a:hover,
+.journal-article-body h3 a:focus-visible {
+  background-size: 100% 42%;
 }
 
 .article-card h2 a:hover,
@@ -643,14 +674,18 @@ h3 {
 
 .pet-photo {
   position: relative;
-  padding: 10px 10px 0;
+  padding: 10px;
+  background: var(--paper-deep);
 }
 
 .pet-photo img {
   display: block;
   width: 100%;
-  height: 235px;
-  object-fit: cover;
+  height: auto;
+  max-height: min(360px, 60vh);
+  object-fit: contain;
+  object-position: center;
+  background: var(--card);
 }
 
 .pet-photo-placeholder {
@@ -659,16 +694,8 @@ h3 {
   height: 235px;
 }
 
-.pet-card--1 .pet-photo img {
-  height: 295px;
-}
-
 .pet-card--1 .pet-photo-placeholder {
   height: 295px;
-}
-
-.pet-card--2 .pet-photo img {
-  height: 205px;
 }
 
 .pet-card--2 .pet-photo-placeholder {
@@ -791,6 +818,10 @@ h3 {
   display: flex;
   flex-wrap: wrap;
   gap: 7px;
+}
+
+.tag-row {
+  margin-top: 10px;
 }
 
 .tag {
@@ -1110,6 +1141,101 @@ h3 {
   box-shadow: var(--shadow);
 }
 
+.post-cover-trigger {
+  display: block;
+  width: min(100%, 1120px);
+  margin: 0 auto 45px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius);
+  background: transparent;
+  cursor: zoom-in;
+}
+
+.post-cover-trigger .post-cover {
+  width: 100%;
+  margin: 0;
+}
+
+.post-content .markdown-body img {
+  cursor: zoom-in;
+}
+
+.image-lightbox-open {
+  overflow: hidden;
+}
+
+.image-lightbox {
+  position: fixed;
+  z-index: 100;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 64px 24px 24px;
+  background: rgba(18, 26, 21, .88);
+  backdrop-filter: blur(12px);
+}
+
+.image-lightbox-close {
+  position: absolute;
+  top: 18px;
+  right: 22px;
+  display: grid;
+  width: 42px;
+  height: 42px;
+  place-items: center;
+  padding: 0;
+  border: 1px solid rgba(255, 255, 255, .34);
+  border-radius: 50%;
+  color: #fffdf5;
+  background: rgba(255, 255, 255, .12);
+  font-size: 1.65rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.image-lightbox-close:hover {
+  background: rgba(255, 255, 255, .22);
+}
+
+.image-lightbox-figure {
+  max-width: 100%;
+  max-height: 100%;
+  margin: 0;
+}
+
+.image-lightbox-image {
+  display: block;
+  width: auto;
+  max-width: min(94vw, 1600px);
+  height: auto;
+  max-height: 88vh;
+  border-radius: 12px;
+  object-fit: contain;
+  box-shadow: 0 24px 70px rgba(0, 0, 0, .42);
+  cursor: zoom-out;
+}
+
+.image-lightbox-enter-active,
+.image-lightbox-leave-active {
+  transition: opacity .22s ease;
+}
+
+.image-lightbox-enter-active .image-lightbox-figure,
+.image-lightbox-leave-active .image-lightbox-figure {
+  transition: transform .28s cubic-bezier(.22, .8, .28, 1);
+}
+
+.image-lightbox-enter-from,
+.image-lightbox-leave-to {
+  opacity: 0;
+}
+
+.image-lightbox-enter-from .image-lightbox-figure,
+.image-lightbox-leave-to .image-lightbox-figure {
+  transform: scale(.96) translateY(8px);
+}
+
 .post-layout {
   display: grid;
   grid-template-columns: 210px minmax(0, 760px);
@@ -1243,10 +1369,39 @@ h3 {
 }
 
 .markdown-body blockquote {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
   padding: 12px 18px;
   border-left: 3px solid var(--apricot);
   color: var(--muted);
   background: color-mix(in srgb, var(--apricot) 11%, transparent);
+}
+
+.markdown-body blockquote::before {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  content: "";
+  background: linear-gradient(90deg, color-mix(in srgb, var(--apricot) 22%, transparent), color-mix(in srgb, var(--sage) 9%, transparent) 52%, transparent 100%);
+  transform: scaleX(0);
+  transform-origin: left center;
+  animation: markdown-quote-ink-spread .72s cubic-bezier(.22, .8, .28, 1) both;
+  pointer-events: none;
+}
+
+.markdown-body blockquote > * {
+  position: relative;
+  z-index: 1;
+}
+
+@keyframes markdown-quote-ink-spread {
+  from { transform: scaleX(0); opacity: .2; }
+  to { transform: scaleX(1); opacity: 1; }
+}
+
+.markdown-body blockquote > p:only-child {
+  margin-bottom: 0;
 }
 
 .markdown-admonition {
@@ -5745,10 +5900,18 @@ body::before {
 
 /* Half-dynamic handmade pencil cursor for fine-pointer desktop devices. */
 @media (pointer: fine) and (hover: hover) {
-  body,
-  body * {
-    cursor: url('/images/ui/cursor/pencil-cursor.png') 2 2, auto;
-  }
+  body { cursor: url('/images/ui/cursor/pencil-cursor.png') 2 2, default; }
+
+  a,
+  button,
+  [role='button'],
+  summary,
+  select,
+  input[type='checkbox'],
+  input[type='color'],
+  input[type='file'],
+  input[type='radio'],
+  input[type='range'] { cursor: pointer; }
 
   input,
   textarea,
@@ -5756,7 +5919,9 @@ body::before {
     cursor: text;
   }
 
-  button:disabled,
+  [draggable='true'] { cursor: grab; }
+
+  :disabled,
   [aria-disabled='true'] {
     cursor: not-allowed;
   }
@@ -5825,7 +5990,7 @@ body::before {
   padding: 0;
   border: 0;
   background: transparent;
-  cursor: inherit;
+  cursor: pointer;
 }
 
 .brand-notebook-trigger:focus-visible {

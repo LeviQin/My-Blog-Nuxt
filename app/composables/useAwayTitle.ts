@@ -1,13 +1,16 @@
 export function useAwayTitle() {
-  const awayTitle = useState<string | null>('away-title', () => null)
+  let titleBeforeAway = ''
 
   function onVisibilityChange() {
-    awayTitle.value = document.hidden ? '这一页还没看完…' : null
+    if (document.hidden) {
+      titleBeforeAway = document.title
+      document.title = '这一页还没看完…'
+    } else if (titleBeforeAway) {
+      document.title = titleBeforeAway
+      titleBeforeAway = ''
+    }
   }
 
-  onMounted(() => {
-    document.addEventListener('visibilitychange', onVisibilityChange)
-  })
+  onMounted(() => { titleBeforeAway = document.title; document.addEventListener('visibilitychange', onVisibilityChange) })
   onBeforeUnmount(() => document.removeEventListener('visibilitychange', onVisibilityChange))
-  return { awayTitle }
 }

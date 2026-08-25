@@ -1,3 +1,4 @@
+import { getCurrentInstance, onMounted } from 'vue'
 import { readingRewards } from '~/data/reading-rewards'
 
 export interface ReadingRewardState {
@@ -57,6 +58,7 @@ export function useReadingRewards() {
     }
   }
 
-  onMounted(load)
+  if (getCurrentInstance()) onMounted(load)
+  else load()
   return { state, newlyUnlocked, rewards: readingRewards, load, completeArticle, clear }
 }

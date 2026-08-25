@@ -11,13 +11,24 @@
 
     <section class="lab-directory" aria-labelledby="lab-directory-title">
       <div class="lab-directory-heading">
-        <div><p class="card-kicker">01 · LITTLE TOOLS</p><h2 id="lab-directory-title">把图片、文字和灵感整理成一页</h2><p>先从三个可以带走结果的小工具开始。图片默认留在当前浏览器，不上传你的文件。</p></div>
-        <span class="lab-processing-badge is-local"><span aria-hidden="true">⌁</span>V1.0 · 本地优先</span>
+        <div><p class="card-kicker">01 · LITTLE TOOLS</p><h2 id="lab-directory-title">把图片、文字和灵感整理成一页</h2><p>从图片、查询到开发者便签，选择一个小工具开始。需要联网的查询会在入口处明确说明。</p></div>
+        <span class="lab-processing-badge is-local">{{ v1Tools.length }} 个小工具 · 即开即用</span>
       </div>
       <div class="lab-tool-grid">
         <NuxtLink v-for="tool in v1Tools" :key="tool.id" class="lab-tool-card" :to="tool.path">
-          <div><span class="lab-tool-card-icon" aria-hidden="true">{{ tool.icon }}</span><h3>{{ tool.name }}</h3><p>{{ tool.description }}</p></div>
-          <div class="lab-tool-card-footer"><span class="lab-processing-badge" :class="'is-' + tool.processing"><span aria-hidden="true">⌁</span>{{ tool.processing === 'local' ? '本地处理' : tool.processing }}</span><span class="lab-tool-arrow" aria-hidden="true">↗</span></div>
+          <span class="lab-tool-card-icon" :class="'is-' + tool.id" :style="labToolIconStyle(tool.icon)" role="img" :aria-label="tool.name"></span>
+          <div class="lab-tool-card-content">
+            <p class="lab-tool-card-kicker">{{ labToolCategoryLabels[tool.category] }}</p>
+            <h3>{{ tool.name }}</h3>
+            <p>{{ tool.description }}</p>
+            <div class="lab-tool-tags" aria-label="工具能力">
+              <span v-for="keyword in tool.keywords.slice(0, 2)" :key="keyword">{{ keyword }}</span>
+            </div>
+          </div>
+          <div class="lab-tool-card-footer">
+            <span class="lab-processing-badge" :class="'is-' + tool.processing">{{ labToolUsageLabels[tool.id] || tool.processing }}</span>
+            <span class="lab-tool-card-action">打开工具</span>
+          </div>
         </NuxtLink>
       </div>
     </section>
@@ -126,6 +137,25 @@ import type { Article, Category, Tag } from '~/types/api'
 import { v1LabTools } from '~/data/lab-tools'
 import { articleDate, normalizeTag } from '~/utils/blog'
 const v1Tools = v1LabTools
+function labToolIconStyle(icon: string) {
+  return icon.startsWith('/') ? { backgroundImage: `url(${icon})`, backgroundSize: 'contain', backgroundPosition: 'center', backgroundColor: 'transparent' } : undefined
+}
+const labToolCategoryLabels: Record<string, string> = {
+  image: '图片工具',
+  creator: '创作工具',
+  query: '查询工具',
+  developer: '开发工具',
+  experiment: '实验工具',
+}
+const labToolUsageLabels: Record<string, string> = {
+  image: '无需上传',
+  cover: '本地生成',
+  color: '本地取色',
+  weather: '联网查询',
+  ip: '联网查询',
+  qr: '本地生成',
+  dev: '本地处理',
+}
 const api = useBlogApi()
 const { data } = await useAsyncData('lab-articles', async () => {
   const results = await Promise.allSettled([api.articles(), api.categories(), api.tags()])

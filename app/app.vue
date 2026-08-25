@@ -7,8 +7,7 @@
 <script setup lang="ts">
 const { settings } = useSiteSettings()
 const config = useRuntimeConfig()
-const { awayTitle } = useAwayTitle()
-useHead(() => ({ title: awayTitle.value || undefined }))
+useAwayTitle()
 useHead(() => {
   const siteName = String(settings.value.blog_name || '').trim()
   const siteDescription = String(settings.value.blog_description || '').trim()

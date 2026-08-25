@@ -3,32 +3,42 @@
 <script setup lang="ts">
 import { renderMarkdown } from '~/utils/blog'
 
-const props = defineProps<{ source?: string }>()
+const props = defineProps<{ source?: string; enableImagePreview?: boolean }>()
+const emit = defineEmits<{ 'image-click': [image: { src: string; alt: string }] }>()
 const root = ref<HTMLElement>()
 const html = computed(() => renderMarkdown(props.source || ''))
 
 async function handleClick(event: MouseEvent) {
   const target = (event.target as HTMLElement).closest<HTMLButtonElement>('[data-code-action]')
-  if (!target || !root.value?.contains(target)) return
-  const block = target.closest<HTMLElement>('[data-code-block]')
-  if (!block) return
+  if (target && root.value?.contains(target)) {
+    const block = target.closest<HTMLElement>('[data-code-block]')
+    if (!block) return
 
-  if (target.dataset.codeAction === 'toggle') {
-    const collapsed = block.classList.toggle('is-collapsed')
-    target.textContent = collapsed ? '展开' : '折叠'
-    target.setAttribute('aria-expanded', String(!collapsed))
+    if (target.dataset.codeAction === 'toggle') {
+      const collapsed = block.classList.toggle('is-collapsed')
+      target.textContent = collapsed ? '展开' : '折叠'
+      target.setAttribute('aria-expanded', String(!collapsed))
+      return
+    }
+
+    if (target.dataset.codeAction !== 'copy') return
+    const code = block.querySelector('pre code')?.textContent || ''
+    try {
+      await copyText(code)
+      target.textContent = '已复制'
+    } catch {
+      target.textContent = '复制失败'
+    }
+    window.setTimeout(() => { target.textContent = '复制' }, 1600)
     return
   }
 
-  if (target.dataset.codeAction !== 'copy') return
-  const code = block.querySelector('pre code')?.textContent || ''
-  try {
-    await copyText(code)
-    target.textContent = '已复制'
-  } catch {
-    target.textContent = '复制失败'
-  }
-  window.setTimeout(() => { target.textContent = '复制' }, 1600)
+  if (!props.enableImagePreview) return
+  const image = (event.target as HTMLElement).closest<HTMLImageElement>('img')
+  if (!image || !root.value?.contains(image)) return
+  event.preventDefault()
+  const src = image.currentSrc || image.src
+  if (src) emit('image-click', { src, alt: image.alt || '文章图片' })
 }
 
 async function copyText(value: string) {

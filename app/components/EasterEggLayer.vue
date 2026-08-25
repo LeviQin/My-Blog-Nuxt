@@ -1,16 +1,20 @@
 <template>
   <div class="easter-egg-layer" aria-live="polite">
     <Transition name="easter-pop">
-      <div v-if="catVisible" class="idle-cat" aria-hidden="true">
+      <div v-if="catVisible" class="idle-cat" role="status" aria-label="猫咪探头彩蛋">
         <img class="idle-cat-image" src="/images/ui/icons/icon-cat-real.png" alt="" width="120" height="120">
         <span class="cat-paw paw-one"><img src="/images/ui/handmade/icon-paw-real.png" alt="" width="28" height="28"></span>
         <span class="cat-paw paw-two"><img src="/images/ui/handmade/icon-paw-real.png" alt="" width="24" height="24"></span>
         <span class="cat-paw paw-three"><img src="/images/ui/handmade/icon-paw-real.png" alt="" width="22" height="22"></span>
+        <button class="idle-cat-close" type="button" aria-label="关闭猫咪彩蛋" @click="dismissCat">×</button>
       </div>
     </Transition>
     <Transition name="easter-pop">
-      <div v-if="fireflyVisible" class="firefly-wrap">
-        <button class="firefly" type="button" aria-label="查看萤火虫纸条" @click="showQuote = true; stopFirefly()"><span /></button>
+      <div v-if="fireflyVisible" class="firefly-wrap" aria-label="夜间萤火虫彩蛋">
+        <button v-for="position in fireflyPositions" :key="position" class="firefly" :class="`firefly-${position}`" type="button" aria-label="查看萤火虫纸条" @click="openFireflyQuote">
+          <img src="/images/ui/handmade/icon-firefly-real.png" alt="" width="30" height="30" decoding="async">
+          <span aria-hidden="true" />
+        </button>
         <Transition name="easter-note"><p v-if="showQuote" class="firefly-note" role="status">{{ quote }}<button type="button" aria-label="关闭萤火虫纸条" @click="showQuote = false">×</button></p></Transition>
       </div>
     </Transition>
@@ -31,35 +35,29 @@ import { readingRewards } from '~/data/reading-rewards'
 const { state, update } = useEasterEggSession()
 const { newlyUnlocked } = useReadingRewards()
 const catVisible = ref(false)
+const catDismissed = ref(false)
 const fireflyVisible = ref(false)
 const showQuote = ref(false)
 const quote = ref('')
 const reducedMotion = ref(false)
-let visibleSeconds = 0
-let timer: ReturnType<typeof setInterval> | null = null
+const fireflyPositions = ['one', 'two', 'three'] as const
+const maxFireflyShows = 3
 let fireflyTimer: ReturnType<typeof setTimeout> | null = null
 let themeObserver: MutationObserver | null = null
 
 const reward = computed(() => newlyUnlocked.value ? readingRewards.find((item) => item.id === newlyUnlocked.value) : null)
 
 function clearReward() { newlyUnlocked.value = null }
-function stopFirefly() { fireflyVisible.value = false; if (fireflyTimer) clearTimeout(fireflyTimer) }
-function tickVisibleTime() {
-  if (document.hidden || state.value.catShown || reducedMotion.value || window.innerWidth < 700) return
-  visibleSeconds += 1
-  if (visibleSeconds >= 60) {
-    catVisible.value = true
-    update({ catShown: true })
-    if (timer) clearInterval(timer)
-    window.setTimeout(() => { catVisible.value = false }, 7200)
-  }
-}
+function dismissCat() { catDismissed.value = true; catVisible.value = false }
+function openFireflyQuote() { showQuote.value = true }
+function stopFirefly() { fireflyVisible.value = false; showQuote.value = false; if (fireflyTimer) clearTimeout(fireflyTimer) }
 function scheduleFirefly() {
   if (fireflyTimer) clearTimeout(fireflyTimer)
-  if (state.value.fireflyShownCount >= 2 || document.hidden || document.documentElement.dataset.theme !== 'dark' || reducedMotion.value) return
+  if (state.value.fireflyShownCount >= maxFireflyShows || document.hidden || document.documentElement.dataset.theme !== 'dark' || reducedMotion.value) return
   fireflyTimer = window.setTimeout(() => {
     if (document.documentElement.dataset.theme !== 'dark' || document.hidden) return scheduleFirefly()
     fireflyVisible.value = true
+    showQuote.value = false
     quote.value = fireflyQuotes[Math.floor(Math.random() * fireflyQuotes.length)]
     update({ fireflyShownCount: state.value.fireflyShownCount + 1 })
     window.setTimeout(stopFirefly, 6500)
@@ -67,14 +65,19 @@ function scheduleFirefly() {
 }
 function onVisibility() { if (!document.hidden) scheduleFirefly() }
 function onThemeChange() { if (document.documentElement.dataset.theme === 'dark') scheduleFirefly(); else stopFirefly() }
+function onResize() {
+  if (window.innerWidth < 700) catVisible.value = false
+  else if (!catDismissed.value && !reducedMotion.value) catVisible.value = true
+}
 
 onMounted(() => {
   reducedMotion.value = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-  timer = window.setInterval(tickVisibleTime, 1000)
+  if (!reducedMotion.value && window.innerWidth >= 700) catVisible.value = true
   scheduleFirefly()
   document.addEventListener('visibilitychange', onVisibility)
+  window.addEventListener('resize', onResize)
   themeObserver = new MutationObserver(onThemeChange)
   themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] })
 })
-onBeforeUnmount(() => { if (timer) clearInterval(timer); if (fireflyTimer) clearTimeout(fireflyTimer); themeObserver?.disconnect(); document.removeEventListener('visibilitychange', onVisibility) })
+onBeforeUnmount(() => { if (fireflyTimer) clearTimeout(fireflyTimer); themeObserver?.disconnect(); document.removeEventListener('visibilitychange', onVisibility); window.removeEventListener('resize', onResize) })
 </script>
