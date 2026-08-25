@@ -1,0 +1,141 @@
+name: Deploy My Blog Nuxt
+
+on:
+  push:
+    branches:
+      - main
+
+concurrency:
+  group: my-blog-nuxt-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Deploy Production
+
+    runs-on:
+      - self-hosted
+      - Linux
+      - X64
+      - my-blog-nuxt
+
+    timeout-minutes: 30
+
+    steps:
+      - name: Update source code
+        run: |
+          set -e
+
+          cd /www/git/My-Blog-Nuxt
+
+          echo "========== 更新代码 =========="
+
+          git fetch --depth=1 origin main
+          git reset --hard origin/main
+
+          echo ""
+          echo "========== 当前部署版本 =========="
+          git log -1 --oneline
+
+      - name: Deploy Docker
+        run: |
+          set -e
+
+          cd /www/git/My-Blog-Nuxt
+
+          echo "========== 构建并更新 Nuxt 容器 =========="
+
+          if ! docker compose up \
+            -d \
+            --build \
+            --remove-orphans \
+            --wait \
+            --wait-timeout 90; then
+
+            echo ""
+            echo "========== 部署失败 =========="
+
+            echo ""
+            echo "========== Docker Compose 状态 =========="
+            docker compose ps || true
+
+            echo ""
+            echo "========== 容器日志 =========="
+            docker compose logs --tail=200 || true
+
+            echo ""
+            echo "========== 容器运行状态 =========="
+            docker inspect my-blog-nuxt \
+              --format='Status={{.State.Status}} ExitCode={{.State.ExitCode}} Error={{.State.Error}}' \
+              || true
+
+            echo ""
+            echo "========== Docker 健康检查 =========="
+            docker inspect my-blog-nuxt \
+              --format='{{json .State.Health}}' \
+              || true
+
+            exit 1
+          fi
+
+      - name: Check container
+        run: |
+          set -e
+
+          cd /www/git/My-Blog-Nuxt
+
+          echo "========== Docker Compose 状态 =========="
+          docker compose ps
+
+          echo ""
+          echo "========== my-blog-nuxt 状态 =========="
+
+          docker inspect my-blog-nuxt \
+            --format='Status={{.State.Status}} Health={{if .State.Health}}{{.State.Health.Status}}{{else}}none{{end}}'
+
+      - name: Verify website
+        run: |
+          set -e
+
+          echo "========== Nuxt 首页检查 =========="
+
+          curl \
+            --fail \
+            --silent \
+            --show-error \
+            --output /dev/null \
+            http://127.0.0.1:3006/
+
+          echo ""
+          echo "Nuxt 首页访问正常"
+
+      - name: Cleanup Docker images
+        run: |
+          set -e
+
+          echo "========== 清理无用 Docker 镜像 =========="
+
+          docker image prune -f
+
+      - name: Deployment completed
+        run: |
+          set -e
+
+          cd /www/git/My-Blog-Nuxt
+
+          echo ""
+          echo "========================================"
+          echo "My-Blog-Nuxt 部署成功"
+          echo "========================================"
+
+          echo ""
+          echo "========== 部署版本 =========="
+          git log -1 --oneline
+
+          echo ""
+          echo "========== 最终容器状态 =========="
+          docker compose ps
+
+          echo ""
+          echo "========== 本机访问地址 =========="
+          echo "http://127.0.0.1:3006/"
