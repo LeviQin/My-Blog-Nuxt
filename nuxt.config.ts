@@ -35,6 +35,10 @@ export default defineNuxtConfig({
           content: '记录代码，也记录生活里的风景。',
         },
         {
+          name: 'baidu-site-verification',
+          content: 'codeva-oJGjZZEAc9',
+        },
+        {
           name: 'theme-color',
           content: '#f7f2e8',
         },
