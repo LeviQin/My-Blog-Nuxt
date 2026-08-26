@@ -1,4 +1,4 @@
-type AnalyticsEventName = 'page_view' | 'article_view'
+type AnalyticsEventName = 'page_view' | 'article_view' | 'article_engaged'
 
 type AnalyticsPayload = {
   page_path?: string
@@ -20,11 +20,14 @@ type QueuedEvent = {
 
 const VISITOR_KEY = 'levi-blog-analytics-visitor-id'
 const SESSION_KEY = 'levi-blog-analytics-session-id'
+const SESSION_LAST_ACTIVE_KEY = 'levi-blog-analytics-session-last-active'
+const SESSION_TIMEOUT_MS = 30 * 60 * 1000
 const MAX_BATCH_SIZE = 25
 
 let queue: QueuedEvent[] = []
 let flushTimer: ReturnType<typeof setTimeout> | null = null
 let flushing = false
+let hasTrackedInitialPageView = false
 
 function createId() {
   if (import.meta.client && globalThis.crypto?.randomUUID) return globalThis.crypto.randomUUID()
@@ -40,6 +43,23 @@ function getStorageId(type: 'local' | 'session', key: string) {
     const value = createId()
     storage.setItem(key, value)
     return value
+  } catch {
+    return createId()
+  }
+}
+
+function getSessionId() {
+  if (!import.meta.client) return ''
+  try {
+    const now = Date.now()
+    const lastActive = Number(window.sessionStorage.getItem(SESSION_LAST_ACTIVE_KEY) || 0)
+    let sessionId = window.sessionStorage.getItem(SESSION_KEY) || ''
+    if (!sessionId || !lastActive || now - lastActive > SESSION_TIMEOUT_MS) {
+      sessionId = createId()
+      window.sessionStorage.setItem(SESSION_KEY, sessionId)
+    }
+    window.sessionStorage.setItem(SESSION_LAST_ACTIVE_KEY, String(now))
+    return sessionId
   } catch {
     return createId()
   }
@@ -107,16 +127,18 @@ export function useAnalytics() {
   const track = (eventName: AnalyticsEventName, payload: AnalyticsPayload = {}) => {
     if (!import.meta.client) return
     const { page_path, article_id, referrer_host, ...properties } = payload
+    const inferredReferrer = eventName === 'page_view' && !hasTrackedInitialPageView ? getReferrerHost() : ''
     queue.push({
       event_id: createId(),
       event_name: eventName,
       visitor_id: getStorageId('local', VISITOR_KEY),
-      session_id: getStorageId('session', SESSION_KEY),
+      session_id: getSessionId(),
       page_path: String(page_path || getCurrentPath()).slice(0, 255),
       ...(Number.isInteger(article_id) && Number(article_id) > 0 ? { article_id: Number(article_id) } : {}),
-      ...(referrer_host || getReferrerHost() ? { referrer_host: String(referrer_host || getReferrerHost()).slice(0, 255) } : {}),
+      ...(referrer_host || inferredReferrer ? { referrer_host: String(referrer_host || inferredReferrer).slice(0, 255) } : {}),
       ...(Object.keys(properties).length ? { properties } : {}),
     })
+    if (eventName === 'page_view') hasTrackedInitialPageView = true
     scheduleFlush()
   }
 

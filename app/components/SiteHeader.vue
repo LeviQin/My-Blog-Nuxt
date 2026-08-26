@@ -18,7 +18,7 @@
           <input id="header-keyword" v-model="keyword" type="search" placeholder="搜索文章、标签...">
           <button type="submit" aria-label="提交搜索"><img src="/images/ui/handmade/magnifier.webp" alt="" width="25" height="25" decoding="async"></button>
         </form>
-        <button class="theme-button" type="button" :aria-label="theme === 'light' ? '切换深色主题' : '切换浅色主题'" @click="toggleTheme"><img :src="theme === 'light' ? '/images/ui/handmade/moon.webp' : '/images/ui/handmade/sun.png'" alt="" width="25" height="25" decoding="async"></button>
+        <button class="theme-button" type="button" :aria-label="theme === 'light' ? '切换深色主题' : '切换浅色主题'" @click="toggleTheme"><img :src="theme === 'light' ? '/images/ui/handmade/moon.webp' : '/images/ui/handmade/sun.webp'" alt="" width="25" height="25" decoding="async"></button>
       </nav>
     </div>
   </header>

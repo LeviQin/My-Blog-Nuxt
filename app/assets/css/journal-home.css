@@ -683,7 +683,7 @@ body::before {
   justify-content: space-between;
   gap: 16px;
   min-height: 54px;
-  padding: 0 24px 5px 44px;
+  padding: 0 24px 0 55px;
   background: url('/images/ui/handmade/paper-title.webp') left center / auto 100% no-repeat;
 }
 
@@ -822,8 +822,8 @@ body::before {
   bottom: 24px;
   z-index: 10;
   display: grid;
-  width: 32px;
-  height: 32px;
+  width: 55px;
+  height: 55px;
   place-items: center;
   padding: 0;
   border: 0;
@@ -832,8 +832,8 @@ body::before {
 }
 
 .back-to-top img {
-  width: 32px;
-  height: 32px;
+  width: 100%;
+  height: 100%;
   object-fit: contain;
 }
 
@@ -1070,10 +1070,10 @@ body::before {
   }
 
   .back-to-top {
-    right: 16px;
+    right: 5px;
     bottom: 16px;
-    width: 32px;
-    height: 32px;
+    width: 45px;
+    height: 45px;
   }
 }
 
@@ -1695,7 +1695,6 @@ body::before {
   padding: 25px 30px;
   border: 1px solid rgba(133, 110, 71, .2);
   border-radius: 16px;
-  background: url('/images/ui/handmade/paper-strip.webp') center / cover no-repeat;
   box-shadow: 0 6px 16px rgba(89, 67, 39, .08);
 }
 
@@ -1770,13 +1769,6 @@ body::before {
 :root[data-theme="dark"] .links-page .link-card {
   border-color: rgba(220, 232, 209, .2);
   background-color: var(--journal-card);
-}
-
-:root[data-theme="dark"] .links-apply-card {
-  background-image: linear-gradient(rgba(27, 40, 33, .86), rgba(27, 40, 33, .86)), url('/images/ui/handmade/paper-strip.webp');
-  background-position: center;
-  background-size: cover;
-  background-repeat: no-repeat;
 }
 
 :root[data-theme="dark"] .links-apply-card h2 {
@@ -3313,8 +3305,8 @@ body::before {
   }
 
   .lab-hero>img {
-    width: 76px;
-    height: 88px;
+    width: 66px;
+    height: 78px;
   }
 
   .lab-card,

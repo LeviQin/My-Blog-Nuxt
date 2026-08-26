@@ -90,7 +90,7 @@
   width: 76px;
   height: 76px;
   border-radius: 19px 15px 21px 17px;
-  background-image: url('/images/ui/lab/tool-icons-sprite.png');
+  background-image: url('/images/ui/lab/tool-icons-sprite.webp');
   background-repeat: no-repeat;
   background-size: 300% auto;
   background-position: 0 50%;
@@ -237,7 +237,7 @@
   width: 112px;
   height: 112px;
   border-radius: 24px 18px 27px 21px;
-  background-image: url('/images/ui/lab/tool-icons-sprite.png');
+  background-image: url('/images/ui/lab/tool-icons-sprite.webp');
   background-repeat: no-repeat;
   background-size: 300% auto;
   background-position: 0 50%;
@@ -351,7 +351,7 @@
   height: 72px;
   margin-bottom: 4px;
   border-radius: 18px 14px 21px 16px;
-  background-image: url('/images/ui/lab/tool-icons-sprite.png');
+  background-image: url('/images/ui/lab/tool-icons-sprite.webp');
   background-repeat: no-repeat;
   background-size: 300% auto;
   background-position: 0 50%;
@@ -728,7 +728,7 @@
   height: 78px;
   border-radius: 20px 15px 23px 18px;
   background-color: var(--journal-olive-soft);
-  background-image: url('/images/ui/lab/tool-icons-sprite.png');
+  background-image: url('/images/ui/lab/tool-icons-sprite.webp');
   background-repeat: no-repeat;
   background-size: 300% auto;
   background-position: 0 50%;
@@ -1303,25 +1303,37 @@
 .lab-tool-card-icon.is-weather,
 .lab-tool-hero-icon.is-weather,
 .lab-empty-result-icon.is-weather {
-  background: transparent url('/images/ui/lab/icon-weather.png') center / contain no-repeat;
+  background-image: url('/images/ui/lab/icon-weather.webp');
+  background-position: center;
+  background-size: contain;
+  background-repeat: no-repeat;
 }
 
 .lab-tool-card-icon.is-ip,
 .lab-tool-hero-icon.is-ip,
 .lab-empty-result-icon.is-ip {
-  background: transparent url('/images/ui/lab/icon-ip.png') center / contain no-repeat;
+  background-image: url('/images/ui/lab/icon-ip.webp');
+  background-position: center;
+  background-size: contain;
+  background-repeat: no-repeat;
 }
 
 .lab-tool-card-icon.is-qr,
 .lab-tool-hero-icon.is-qr,
 .lab-empty-result-icon.is-qr {
-  background: transparent url('/images/ui/lab/icon-qr.png') center / contain no-repeat;
+  background-image: url('/images/ui/lab/icon-qr.webp');
+  background-position: center;
+  background-size: contain;
+  background-repeat: no-repeat;
 }
 
 .lab-tool-card-icon.is-dev,
 .lab-tool-hero-icon.is-dev,
 .lab-empty-result-icon.is-dev {
-  background: transparent url('/images/ui/lab/icon-dev.png') center / contain no-repeat;
+  background-image: url('/images/ui/lab/icon-dev.webp');
+  background-position: center;
+  background-size: contain;
+  background-repeat: no-repeat;
 }
 
 .query-workspace,
@@ -1460,19 +1472,19 @@
 }
 
 .weather-scene.is-sun {
-  background-image: url('/images/ui/lab/weather-scene-sun.png');
+  background-image: url('/images/ui/lab/weather-scene-sun.webp');
 }
 
 .weather-scene.is-cloud {
-  background-image: url('/images/ui/lab/weather-scene-cloud.png');
+  background-image: url('/images/ui/lab/weather-scene-cloud.wep');
 }
 
 .weather-scene.is-rain {
-  background-image: url('/images/ui/lab/weather-scene-rain.png');
+  background-image: url('/images/ui/lab/weather-scene-rain.webp');
 }
 
 .weather-scene.is-snow {
-  background-image: url('/images/ui/lab/weather-scene-snow.png');
+  background-image: url('/images/ui/lab/weather-scene-snow.webp');
 }
 
 .weather-card-top,

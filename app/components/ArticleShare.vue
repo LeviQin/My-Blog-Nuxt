@@ -1,7 +1,7 @@
 <template>
   <div ref="root" class="article-share">
     <button class="button ghost article-share-trigger" type="button" aria-haspopup="dialog" :aria-expanded="open" @click="toggleOpen">
-      <img src="/images/ui/share/share.png" alt="" width="24" height="24" decoding="async">
+      <img src="/images/ui/share/share.svg" alt="" width="24" height="24" decoding="async">
       <span>分享</span>
     </button>
 
@@ -17,15 +17,15 @@
 
         <div class="article-share-options">
           <button class="article-share-option" type="button" @click="shareWithSystem">
-            <img src="/images/ui/share/share.png" alt="" width="32" height="32" decoding="async">
+            <img src="/images/ui/share/share.svg" alt="" width="32" height="32" decoding="async">
             <span>系统分享</span>
           </button>
           <button class="article-share-option" type="button" @click="copyLink">
-            <img src="/images/ui/share/copy.png" alt="" width="32" height="32" decoding="async">
+            <img src="/images/ui/share/copy.svg" alt="" width="32" height="32" decoding="async">
             <span>复制链接</span>
           </button>
           <button class="article-share-option" type="button" @click="showQrCode">
-            <img src="/images/ui/share/scan.png" alt="" width="32" height="32" decoding="async">
+            <img src="/images/ui/share/scan.svg" alt="" width="32" height="32" decoding="async">
             <span>扫码打开</span>
           </button>
         </div>

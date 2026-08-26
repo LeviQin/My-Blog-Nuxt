@@ -70,7 +70,7 @@
           </section>
 
           <NuxtLink class="journal-card lab-entry-card" to="/lab">
-            <img src="/images/ui/handmade/icon-lab-flask-real.png" alt="" width="46" height="52" aria-hidden="true">
+            <img src="/images/ui/handmade/icon-lab-flask-real.svg" alt="" width="46" height="52" aria-hidden="true">
             <span><small>LEVI LAB</small><strong>手账实验室</strong><em>调一张纸，写一段 Markdown。</em></span>
             <b aria-hidden="true">→</b>
           </NuxtLink>
@@ -82,7 +82,7 @@
         </aside>
       </div>
     </div>
-    <button v-show="showBackToTop" class="back-to-top" type="button" aria-label="返回顶部" @click="backToTop"><img src="/images/ui/handmade/arrow-up.webp" alt="" width="30" height="30" aria-hidden="true"></button>
+    <button v-show="showBackToTop" class="back-to-top" type="button" aria-label="返回顶部" @click="backToTop"><img src="/images/ui/handmade/arrow-up.svg" alt="" width="30" height="30" aria-hidden="true"></button>
   </div>
 </template>
 

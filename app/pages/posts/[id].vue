@@ -74,6 +74,14 @@ const completionMarker = ref<HTMLElement>()
 const { completeArticle } = useReadingRewards()
 const { track } = useAnalytics()
 let completionObserver: IntersectionObserver | null = null
+let engagementTimer: ReturnType<typeof setTimeout> | null = null
+let engagementTracked = false
+
+function trackEngagement() {
+  if (isPreview || engagementTracked) return
+  engagementTracked = true
+  track('article_engaged', { article_id: id, page_path: route.path })
+}
 
 function onCoverError(event: Event) {
   const image = event.currentTarget as HTMLImageElement
@@ -93,7 +101,10 @@ watch(lightboxImage, (image) => {
 })
 
 watch(progress, (value) => {
-  if (!isPreview && value >= 100) hasCompletedReading.value = true
+  if (!isPreview && value >= 100) {
+    hasCompletedReading.value = true
+    trackEngagement()
+  }
 })
 
 function observeHeadings() {
@@ -122,13 +133,17 @@ function scrollToHeading(event: MouseEvent, headingId: string) {
 
 onMounted(() => {
   window.addEventListener('keydown', handleLightboxKeydown)
-  if (!isPreview) track('article_view', { article_id: id, page_path: route.path })
+  if (!isPreview) {
+    track('article_view', { article_id: id, page_path: route.path })
+    engagementTimer = setTimeout(trackEngagement, 30000)
+  }
   nextTick(() => {
     observeHeadings()
     if (!isPreview && completionMarker.value) {
       completionObserver = new IntersectionObserver(([entry]) => {
         if (!entry?.isIntersecting || hasCompletedReading.value) return
         hasCompletedReading.value = true
+        trackEngagement()
         completeArticle(id)
         completionObserver?.disconnect()
       }, { threshold: 0.1 })
@@ -136,7 +151,7 @@ onMounted(() => {
     }
   })
 })
-onBeforeUnmount(() => { headingObserver?.disconnect(); completionObserver?.disconnect(); window.removeEventListener('keydown', handleLightboxKeydown); document.body.classList.remove('image-lightbox-open') })
+onBeforeUnmount(() => { headingObserver?.disconnect(); completionObserver?.disconnect(); if (engagementTimer) clearTimeout(engagementTimer); window.removeEventListener('keydown', handleLightboxKeydown); document.body.classList.remove('image-lightbox-open') })
 
 useBlogSeo({
   title: () => article.value?.title || '文章',

@@ -6,7 +6,7 @@
         <h1>手账实验室</h1>
         <p>把颜色、文字和文章之间的关系，做成可以亲手翻动的小实验。</p>
       </div>
-      <img src="/images/ui/handmade/icon-lab-flask-real.png" alt="" width="112" height="128" aria-hidden="true">
+      <img src="/images/ui/handmade/icon-lab-flask-real.svg" alt="" width="112" height="128" aria-hidden="true">
     </header>
 
     <section class="lab-directory" aria-labelledby="lab-directory-title">
@@ -138,7 +138,7 @@ import { v1LabTools } from '~/data/lab-tools'
 import { articleDate, normalizeTag } from '~/utils/blog'
 const v1Tools = v1LabTools
 function labToolIconStyle(icon: string) {
-  return icon.startsWith('/') ? { backgroundImage: `url(${icon})`, backgroundSize: 'contain', backgroundPosition: 'center', backgroundColor: 'transparent' } : undefined
+  return icon.startsWith('/') ? { backgroundImage: `url(${icon})`, backgroundSize: 'contain', backgroundPosition: 'center' } : undefined
 }
 const labToolCategoryLabels: Record<string, string> = {
   image: '图片工具',
