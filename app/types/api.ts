@@ -20,8 +20,15 @@ export interface SiteSetting {
   blog_connect_title?: string; blog_connect_email?: string; blog_connect_github?: string;
   blog_connect_wx?: string; blog_connect_qq?: string; blog_connect_wx_image?: string; blog_connect_bg_img?: string;
   blog_work_title?: string; blog_work_bg_img?: string;
+  show_category_module?: number | boolean | string;
+  show_widget_module?: number | boolean | string;
+  show_sites_module?: number | boolean | string;
+  show_guestbook_module?: number | boolean | string;
+  show_friend_link_module?: number | boolean | string;
+  show_about_module?: number | boolean | string;
   [key: string]: unknown
 }
+export interface SiteNavItem { id?: number; title: string; description?: string; url: string; image?: string; type?: number | string }
 export interface Link { id?: number; name: string; image?: string; url: string; description?: string; sort?: number }
 export interface Comment { id: number; article_id?: number; parent_id?: number | null; city?: string; user_nickname: string; user_avatar_url?: string; content: string; created_at?: string; is_admin?: number | boolean; children?: Comment[] }
 export interface Message extends Comment {

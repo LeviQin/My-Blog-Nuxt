@@ -1341,6 +1341,20 @@ h3 {
   font-size: 1.04rem;
 }
 
+.markdown-body br {
+  margin: 0;
+  padding: 0;
+}
+
+/* Fallback for older rendered HTML that still keeps <br><img><img><br> inside one paragraph. */
+.markdown-body p > br + img,
+.markdown-body p > br + img ~ img {
+  display: inline-block;
+  max-width: 100%;
+  margin: 0;
+  vertical-align: top;
+}
+
 .markdown-body h1,
 .markdown-body h2,
 .markdown-body h3 {
@@ -1400,17 +1414,19 @@ h3 {
 }
 
 .markdown-image-gallery {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(240px, 100%), 1fr));
+  display: flex;
+  flex-wrap: wrap;
   gap: 14px;
   align-items: start;
+  justify-content: center;
   margin: 1.5rem 0;
 }
 
 .markdown-image-gallery img {
-  display: block;
-  width: 100%;
-  height: clamp(180px, 28vw, 420px);
+  flex: 0 0 auto;
+  max-width: 100%;
+  height: auto;
+  max-height: 700px;
   margin: 0;
   object-fit: contain;
   background: var(--paper-deep);

@@ -57,7 +57,7 @@
             <div class="profile-socials">
               <a v-for="social in socialLinks" :key="social.label" :href="social.href" target="_blank" rel="noreferrer" :aria-label="social.label" :title="social.label"><img :src="social.icon" alt="" width="38" height="38"></a>
               <a href="/api/articles/rss.xml" aria-label="订阅 RSS" title="订阅 RSS"><img src="/images/ui/handmade/social-rss.svg" alt="" width="38" height="38"></a>
-              <NuxtLink to="/about" aria-label="联系我" title="联系我"><img src="/images/ui/handmade/icon-contact.svg" alt="" width="38" height="38"></NuxtLink>
+              <NuxtLink v-if="showAboutModule" to="/about" aria-label="联系我" title="联系我"><img src="/images/ui/handmade/icon-contact.svg" alt="" width="38" height="38"></NuxtLink>
               <a v-if="profileEmail" :href="`mailto:${profileEmail}`" :aria-label="`发送邮件至 ${profileEmail}`" :title="profileEmail"><img src="/images/ui/handmade/social-email.svg" alt="" width="38" height="38"></a>
             </div>
           </section>
@@ -69,13 +69,13 @@
             </NuxtLink>
           </section>
 
-          <NuxtLink class="journal-card lab-entry-card" to="/lab">
+          <NuxtLink v-if="showWidgetModule" class="journal-card lab-entry-card" to="/lab">
             <img src="/images/ui/handmade/icon-lab-flask-real.svg" alt="" width="46" height="52" aria-hidden="true">
             <span><small>LEVI LAB</small><strong>手账实验室</strong><em>调一张纸，写一段 Markdown。</em></span>
             <b aria-hidden="true">→</b>
           </NuxtLink>
 
-          <section v-if="categories.length" class="journal-card category-card">
+          <section v-if="showCategoryModule && categories.length" class="journal-card category-card">
             <div class="card-title-row"><h2>文章分类</h2><NuxtLink to="/archive" aria-label="查看文章归档">→</NuxtLink></div>
             <NuxtLink v-for="category in categories" :key="category.slug" class="category-item" :to="`/category/${category.slug}`"><img v-if="category.icon" class="category-icon-img" :src="category.icon" alt="" width="19" height="19" aria-hidden="true"><span>{{ category.name }}</span><small>{{ categoryCount(category.value) }}</small></NuxtLink>
           </section>
@@ -106,6 +106,9 @@ const collageImages = ['/images/life-mountain.webp', '/images/life-cat.webp', '/
 const articles = computed<any[]>(() => data.value?.articles || [])
 const tags = computed<any[]>(() => data.value?.tags || [])
 const settings = computed<any>(() => Array.isArray(data.value?.settings) ? data.value?.settings[0] || {} : data.value?.settings || {})
+const showCategoryModule = computed(() => isSiteModuleEnabled(settings.value, 'show_category_module'))
+const showWidgetModule = computed(() => isSiteModuleEnabled(settings.value, 'show_widget_module'))
+const showAboutModule = computed(() => isSiteModuleEnabled(settings.value, 'show_about_module'))
 const projects = computed<any[]>(() => data.value?.projects || [])
 const failedArticleImages = ref<Record<string, boolean>>({})
 const articleItems = computed(() => articles.value.slice(0, 3))

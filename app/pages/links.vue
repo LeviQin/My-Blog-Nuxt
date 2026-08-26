@@ -49,13 +49,15 @@
         <h2 id="links-apply-title">也想出现在这里？</h2>
         <p>欢迎留下你的站点名称、链接和一句介绍，我会认真查看并回复。</p>
       </div>
-      <NuxtLink class="journal-button journal-button-primary" to="/guestbook"><img class="button-icon" :src="'/images/ui/handmade/envelope.webp'" alt="" width="18" height="18" aria-hidden="true">申请友链</NuxtLink>
+      <NuxtLink v-if="showGuestbook" class="journal-button journal-button-primary" to="/guestbook"><img class="button-icon" :src="'/images/ui/handmade/envelope.webp'" alt="" width="18" height="18" aria-hidden="true">申请友链</NuxtLink>
     </section>
   </div>
 </template>
 
 <script setup lang="ts">
 const api = useBlogApi()
+const { settings } = useSiteSettings()
+const showGuestbook = computed(() => isSiteModuleEnabled(settings.value, 'show_guestbook_module'))
 const { data } = await useAsyncData('links', () => api.links(), { default: () => [] })
 const links = computed(() => data.value || [])
 

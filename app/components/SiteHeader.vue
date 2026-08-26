@@ -51,10 +51,14 @@ const { theme, toggleTheme } = useTheme()
 const { settings } = useSiteSettings()
 const router = useRouter()
 const secretOpen = ref(false)
-const navItems = [
-  { label: '首页', to: '/' }, { label: '文章', to: '/articles' }, { label: '归档', to: '/archive' },
-  { label: '作品', to: '/portfolio' }, { label: '友链', to: '/links' }, { label: '实验室', to: '/lab' }, { label: '联系', to: '/guestbook' }, { label: '关于', to: '/about' },
-]
+const navItems = computed(() => [
+  { label: '首页', to: '/' }, { label: '文章', to: '/articles' }, { label: '归档', to: '/archive' }, { label: '作品', to: '/portfolio' },
+  ...(isSiteModuleEnabled(settings.value, 'show_friend_link_module') ? [{ label: '友链', to: '/links' }] : []),
+  ...(isSiteModuleEnabled(settings.value, 'show_sites_module') ? [{ label: '常用网站', to: '/sites' }] : []),
+  ...(isSiteModuleEnabled(settings.value, 'show_widget_module') ? [{ label: '实验室', to: '/lab' }] : []),
+  ...(isSiteModuleEnabled(settings.value, 'show_guestbook_module') ? [{ label: '联系', to: '/guestbook' }] : []),
+  ...(isSiteModuleEnabled(settings.value, 'show_about_module') ? [{ label: '关于', to: '/about' }] : []),
+])
 function submitSearch() { const value = keyword.value.trim(); if (value) router.push({ path: '/search', query: { keyword: value } }); open.value = false }
 
 function closeSecretOnEscape(event: KeyboardEvent) {

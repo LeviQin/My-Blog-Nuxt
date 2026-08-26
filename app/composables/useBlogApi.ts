@@ -1,4 +1,4 @@
-import type { ApiResponse, BlogProject, Link, PaginatedArticles, SiteSetting, Tag, Category } from '~/types/api'
+import type { ApiResponse, BlogProject, Link, PaginatedArticles, SiteNavItem, SiteSetting, Tag, Category } from '~/types/api'
 import { normalizeArticle } from '~/utils/blog'
 
 async function request<T>(path: string, options: Record<string, unknown> = {}) {
@@ -29,6 +29,7 @@ export function useBlogApi() {
     categories: async () => request<Category[]>('articles/categories'),
     statistics: async () => request<Record<string, number>>('articles/statistics'),
     settings: async () => request<SiteSetting | SiteSetting[]>('blog-setting/settings', { query: { key: 'levi-blog' } }),
+    siteNav: async () => request<SiteNavItem[]>('frontEnd/siteNav'),
     links: async () => request<Link[]>('links/link'),
     projects: async () => request<BlogProject[]>('blog-projects/projects'),
     cityCode: async (cityName: string) => request<any>('tools/cityCode', { method: 'POST', body: { cityName } }),

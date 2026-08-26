@@ -172,11 +172,17 @@ function enhanceMarkdownImages(html: string) {
     return `<img${attributes}${loading}${decoding}${explicitSize}>`
   })
 
-  return withLoading.replace(/(?:<p>\s*(?:(?:<img\b[^>]*>|<br\s*\/?>)\s*)+<\/p>\s*)+/g, (group) => {
+  const withImageParagraphs = withLoading.replace(/(?:<p>\s*(?:(?:<img\b[^>]*>|<br\s*\/?>)\s*)+<\/p>\s*)+/g, (group) => {
     const images = [...group.matchAll(/<img\b[^>]*>/g)].map((match) => match[0])
     if (!images.length) return group
     const className = images.length > 1 ? 'markdown-image-gallery' : 'markdown-image-single'
     return `<div class="${className}">${images.join('')}</div>`
+  })
+
+  // A paragraph can also contain text followed by <br><img><img><br>.
+  // Keep the surrounding text in place, but turn the explicitly grouped images into one wrapping row.
+  return withImageParagraphs.replace(/<br\s*\/?>\s*((?:<img\b[^>]*>\s*){2,})<br\s*\/?>/g, (_match, images) => {
+    return `<span class="markdown-image-gallery">${images}</span>`
   })
 }
 
