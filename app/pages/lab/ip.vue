@@ -128,6 +128,42 @@ function isValidIp(value: string) {
     parts.every((part) => /^\d{1,3}$/.test(part) && Number(part) <= 255)
   );
 }
+function isPublicIpv4(value: string) {
+  if (!isValidIp(value)) return false;
+  const [first, second] = value.split(".").map(Number);
+  if (first === 0 || first === 10 || first === 127 || first >= 224) return false;
+  if (first === 192 && second === 168) return false;
+  if (first === 172 && second >= 16 && second <= 31) return false;
+  return !(first === 169 && second === 254);
+}
+function resolveWebRtcPublicIpv4() {
+  return new Promise<string>((resolve) => {
+    if (typeof RTCPeerConnection === "undefined") {
+      resolve("");
+      return;
+    }
+    const connection = new RTCPeerConnection({ iceServers: [{ urls: "stun:stun.l.google.com:19302" }] });
+    let settled = false;
+    const timer = window.setTimeout(() => finish(""), 3500);
+    const finish = (value: string) => {
+      if (settled) return;
+      settled = true;
+      window.clearTimeout(timer);
+      connection.close();
+      resolve(value);
+    };
+    connection.onicecandidate = (event) => {
+      const candidate = event.candidate?.candidate || "";
+      const match = candidate.match(/\s((?:\d{1,3}\.){3}\d{1,3})\s+\d+\s+typ\s+srflx\b/);
+      if (match && isPublicIpv4(match[1])) finish(match[1]);
+      else if (!event.candidate) finish("");
+    };
+    connection.createDataChannel("ip");
+    connection.createOffer()
+      .then((offer) => connection.setLocalDescription(offer))
+      .catch(() => finish(""));
+  });
+}
 function normalize(data: any, ip: string, isMine: boolean): IpResult {
   return {
     ip: String(data?.ip || ip),
@@ -142,7 +178,7 @@ function normalize(data: any, ip: string, isMine: boolean): IpResult {
   };
 }
 async function lookup(isMine: boolean) {
-  const value = ipValue.value.trim();
+  let value = ipValue.value.trim();
   if (!isMine && !isValidIp(value)) {
     errorMessage.value = "请输入合法 IPv4，不要包含协议、端口或路径。";
     return;
@@ -151,10 +187,30 @@ async function lookup(isMine: boolean) {
   errorMessage.value = "";
   result.value = null;
   try {
-    const data = await api.identifyIpArea(isMine ? undefined : value);
+    if (isMine) {
+      try {
+        const publicIp = await $fetch<{ ip?: string }>("https://api.ipify.org?format=json", { timeout: 5000 });
+        value = String(publicIp?.ip || "").trim();
+        if (!isValidIp(value)) throw new Error("public IP unavailable");
+      } catch {
+        value = await resolveWebRtcPublicIpv4();
+        if (value) {
+          // WebRTC 只负责补齐公网出口 IP，地理信息仍由博客后端查询。
+        } else {
+          const fallback = await api.identifyIpArea();
+          value = String(fallback?.ip || "").trim();
+          result.value = normalize(fallback, value, true);
+          if (fallback?.private) errorMessage.value = "当前开发环境只能识别到本机回环地址，无法从浏览器推断公网 IP。";
+          return;
+        }
+      }
+    }
+    const data = await api.identifyIpArea(value);
     result.value = normalize(data, value, isMine);
   } catch {
-    errorMessage.value = "IP 查询暂时没有回应，请稍后重试。";
+    errorMessage.value = isMine
+      ? "无法取得当前公网 IPv4，请检查网络后重试。"
+      : "IP 查询暂时没有回应，请稍后重试。";
   } finally {
     state.value = "idle";
   }

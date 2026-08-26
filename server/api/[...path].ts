@@ -1,3 +1,5 @@
+import { isIP } from 'node:net'
+
 export default defineEventHandler(async (event): Promise<unknown> => {
   const config = useRuntimeConfig(event)
 
@@ -12,7 +14,7 @@ export default defineEventHandler(async (event): Promise<unknown> => {
     },
   }
 
-  const clientIp = getRequestIP(event, { xForwardedFor: true })
+  const clientIp = getTrustedClientIp(event)
   if (clientIp) {
     ;(requestOptions.headers as Record<string, string>)['x-forwarded-for'] = clientIp
     ;(requestOptions.headers as Record<string, string>)['x-real-ip'] = clientIp
@@ -42,3 +44,25 @@ export default defineEventHandler(async (event): Promise<unknown> => {
     })
   }
 })
+
+function normalizeAddress(value: unknown) {
+  return String(value || '').replace(/^::ffff:/i, '').trim()
+}
+
+function getTrustedProxyAddresses() {
+  const configured = process.env.NUXT_TRUSTED_PROXY_IPS || process.env.TRUSTED_PROXY_IPS || '127.0.0.1,::1,::ffff:127.0.0.1'
+  return new Set(configured.split(',').map(normalizeAddress).filter(Boolean))
+}
+
+function getTrustedClientIp(event: any) {
+  const socketIp = normalizeAddress(getRequestIP(event))
+  if (!socketIp) return ''
+  if (!getTrustedProxyAddresses().has(socketIp)) return socketIp
+  const candidates = [
+    getHeader(event, 'cf-connecting-ip'),
+    getHeader(event, 'true-client-ip'),
+    getHeader(event, 'x-real-ip'),
+    getHeader(event, 'x-forwarded-for')?.split(',')[0],
+  ]
+  return candidates.map(normalizeAddress).find((value) => isIP(value)) || socketIp
+}

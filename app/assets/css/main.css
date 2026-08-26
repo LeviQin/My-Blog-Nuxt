@@ -1721,7 +1721,8 @@ h3 {
 
 .markdown-code-block pre {
   max-height: 620px;
-  overflow: auto;
+  overflow-x: hidden;
+  overflow-y: auto;
   margin: 0;
   padding: 18px 20px 21px;
   border-radius: 0;
@@ -1729,15 +1730,21 @@ h3 {
   background: #202a24;
   font: .86rem/1.75 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   tab-size: 2;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .markdown-code-block pre code {
   display: block;
-  min-width: max-content;
+  min-width: 0;
   padding: 0;
   color: inherit;
   background: transparent;
   font: inherit;
+  white-space: inherit;
+  overflow-wrap: inherit;
+  word-break: inherit;
 }
 
 .markdown-code-block.is-collapsed pre {
