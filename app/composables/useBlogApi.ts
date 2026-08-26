@@ -19,8 +19,8 @@ export function useBlogApi() {
       }
       return { ...payload, items: (payload.items || []).map(normalizeArticle) } as PaginatedArticles
     },
-    article: async (id: string | number) => {
-      const item = (await request<any[]>('articles/article/' + id))[0]
+    article: async (id: string | number, query: Record<string, string> = {}) => {
+      const item = (await request<any[]>('articles/article/' + id, { query }))[0]
       if (!item) throw createError({ statusCode: 404, statusMessage: '文章不存在' })
       return normalizeArticle(item)
     },
