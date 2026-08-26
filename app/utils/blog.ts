@@ -1,6 +1,7 @@
 import MarkdownIt from 'markdown-it'
 import hljs from 'highlight.js/lib/common'
 import type { Article, Tag } from '~/types/api'
+import markdownItAttrs from 'markdown-it-attrs'
 
 export function articleImage(article?: Pick<Article, 'image'>) { return String(article?.image || '').trim() }
 
@@ -75,6 +76,8 @@ function codeLanguageLabel(language: string) { return CODE_LANGUAGE_LABELS[langu
 const renderer = new MarkdownIt({
   html: false, linkify: true, typographer: true, breaks: true,
 })
+
+renderer.use(markdownItAttrs)
 
 function renderCodeBlock(code: string, language = '') {
   const requestedLanguage = normalizeCodeLanguage(language)

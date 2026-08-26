@@ -44,8 +44,6 @@
 import * as QRCode from 'qrcode'
 
 const props = defineProps<{
-  title: string
-  description?: string
   url: string
 }>()
 
@@ -73,13 +71,14 @@ function setStatus(message: string) {
 
 async function shareWithSystem() {
   if (!import.meta.client) return
+  const shareData = { url: props.url }
   try {
-    if (!navigator.share) {
+    if (!navigator.share || (navigator.canShare && !navigator.canShare(shareData))) {
       await copyCurrentUrl()
       return
     }
     close()
-    await navigator.share({ title: props.title, text: props.description || props.title, url: props.url })
+    await navigator.share(shareData)
   } catch (error) {
     const isCancelled = error && typeof error === 'object' && 'name' in error && error.name === 'AbortError'
     if (!isCancelled) {
