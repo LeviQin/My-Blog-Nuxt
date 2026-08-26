@@ -188,21 +188,22 @@ async function lookup(isMine: boolean) {
   result.value = null;
   try {
     if (isMine) {
-      try {
-        const publicIp = await $fetch<{ ip?: string }>("https://api.ipify.org?format=json", { timeout: 5000 });
-        value = String(publicIp?.ip || "").trim();
-        if (!isValidIp(value)) throw new Error("public IP unavailable");
-      } catch {
-        value = await resolveWebRtcPublicIpv4();
-        if (value) {
-          // WebRTC 只负责补齐公网出口 IP，地理信息仍由博客后端查询。
-        } else {
-          const fallback = await api.identifyIpArea();
-          value = String(fallback?.ip || "").trim();
-          result.value = normalize(fallback, value, true);
-          if (fallback?.private) errorMessage.value = "当前开发环境只能识别到本机回环地址，无法从浏览器推断公网 IP。";
-          return;
-        }
+      const [webRtcResult, ipifyResult] = await Promise.allSettled([
+        resolveWebRtcPublicIpv4(),
+        $fetch<{ ip?: string }>("https://api.ipify.org?format=json", { timeout: 5000 }),
+      ]);
+      const webRtcIp = webRtcResult.status === "fulfilled" ? webRtcResult.value : "";
+      const ipifyIp = ipifyResult.status === "fulfilled"
+        ? String(ipifyResult.value?.ip || "").trim()
+        : "";
+      // WebRTC 更可能反映 VPN 的公网出口；ipify 作为被代理或浏览器策略拦截时的回退。
+      value = webRtcIp || (isValidIp(ipifyIp) ? ipifyIp : "");
+      if (!value) {
+        const fallback = await api.identifyIpArea();
+        value = String(fallback?.ip || "").trim();
+        result.value = normalize(fallback, value, true);
+        if (fallback?.private) errorMessage.value = "当前开发环境只能识别到本机回环地址，无法从浏览器推断公网 IP。";
+        return;
       }
     }
     const data = await api.identifyIpArea(value);
