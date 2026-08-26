@@ -1125,7 +1125,7 @@ body::before {
 .footer-status {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 10px !important;
 }
 
 .footer-status-dot {
