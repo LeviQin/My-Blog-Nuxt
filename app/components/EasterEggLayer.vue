@@ -10,7 +10,7 @@
       </div>
     </Transition>
     <Transition name="easter-pop">
-      <div v-if="fireflyVisible" class="firefly-wrap" aria-label="夜间萤火虫彩蛋">
+      <div v-if="fireflyVisible" class="firefly-wrap" :class="`firefly-corner-${fireflyCorner}`" aria-label="夜间萤火虫彩蛋">
         <button v-for="position in fireflyPositions" :key="position" class="firefly" :class="`firefly-${position}`" type="button" aria-label="查看萤火虫纸条" @click="openFireflyQuote">
           <img src="/images/ui/handmade/icon-firefly-real.png" alt="" width="30" height="30" decoding="async">
           <span aria-hidden="true" />
@@ -41,6 +41,8 @@ const showQuote = ref(false)
 const quote = ref('')
 const reducedMotion = ref(false)
 const fireflyPositions = ['one', 'two', 'three'] as const
+const fireflyCorners = ['top-left', 'top-right', 'bottom-left', 'bottom-right'] as const
+const fireflyCorner = ref<(typeof fireflyCorners)[number]>('bottom-right')
 const maxFireflyShows = 3
 let fireflyTimer: ReturnType<typeof setTimeout> | null = null
 let themeObserver: MutationObserver | null = null
@@ -57,10 +59,11 @@ function scheduleFirefly() {
   fireflyTimer = window.setTimeout(() => {
     if (document.documentElement.dataset.theme !== 'dark' || document.hidden) return scheduleFirefly()
     fireflyVisible.value = true
+    fireflyCorner.value = fireflyCorners[Math.floor(Math.random() * fireflyCorners.length)]
     showQuote.value = false
     quote.value = fireflyQuotes[Math.floor(Math.random() * fireflyQuotes.length)]
     update({ fireflyShownCount: state.value.fireflyShownCount + 1 })
-    window.setTimeout(stopFirefly, 6500)
+    window.setTimeout(stopFirefly, 15000)
   }, 25000 + Math.random() * 35000)
 }
 function onVisibility() { if (!document.hidden) scheduleFirefly() }

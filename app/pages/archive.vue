@@ -36,6 +36,9 @@
                   <time :datetime="article.published_at || article.updated_at">{{ articleDate(article.published_at || article.updated_at) }}</time>
                   <span>{{ article.title }}</span>
                   <small>{{ categoryName(article.category) }}</small>
+                  <span v-if="visibleTags(article).length" class="archive-item-tags" aria-label="文章标签">
+                    <span v-for="tag in visibleTags(article)" :key="tag" class="tag"># {{ tag }}</span>
+                  </span>
                 </NuxtLink>
               </div>
             </div>
@@ -48,12 +51,19 @@
   </div>
 </template>
 <script setup lang="ts">
-import { articleDate, categoryName, groupArchive } from '~/utils/blog'
+import { articleDate, categoryName, groupArchive, normalizeTag } from '~/utils/blog'
 import { timeCapsuleNotes } from '~/data/time-capsules'
-import type { Article } from '~/types/api'
+import type { Article, Tag } from '~/types/api'
 const api = useBlogApi()
-const { data } = await useAsyncData('archive', () => api.articles())
-const articles = computed(() => (data.value || []) as Article[])
+const { data } = await useAsyncData('archive', async () => {
+  const results = await Promise.allSettled([api.articles(), api.tags()])
+  return {
+    articles: results[0].status === 'fulfilled' ? results[0].value : [],
+    tags: results[1].status === 'fulfilled' ? results[1].value : [],
+  }
+}, { default: () => ({ articles: [], tags: [] }) })
+const articles = computed(() => (data.value?.articles || []) as Article[])
+const tagNames = computed(() => new Map(((data.value?.tags || []) as Tag[]).map((tag) => [String(tag.id), normalizeTag(tag).name])))
 const archive = computed(() => groupArchive(articles.value))
 const visibleYearCount = ref(3)
 const visibleArchive = computed(() => archive.value.slice(0, visibleYearCount.value))
@@ -64,6 +74,12 @@ const yearQuery = ref('')
 const capsuleOpen = ref(false)
 const capsuleCard = ref<HTMLElement>()
 const yearInput = ref<HTMLInputElement>()
+function visibleTags(article: Article) {
+  return (article.article_tags || [])
+    .map((tag) => tagNames.value.get(String(tag)) || (/^\d+$/.test(String(tag)) ? '' : String(tag)))
+    .filter(Boolean)
+    .slice(0, 3)
+}
 const capsule = computed(() => {
   const year = yearQuery.value
   if (!/^\d{4}$/.test(year)) return null

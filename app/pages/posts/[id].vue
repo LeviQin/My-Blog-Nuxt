@@ -13,7 +13,7 @@
           <p class="card-kicker">on this page</p>
           <a v-for="heading in headings" :key="heading.id" :class="[`toc-level-${heading.level}`, { active: activeHeading === heading.id }]" :href="`#${heading.id}`" :aria-current="activeHeading === heading.id ? 'location' : undefined" @click="scrollToHeading($event, heading.id)">{{ heading.text }}</a>
         </aside>
-        <div class="post-content"><MarkdownBody :source="article.content" :enable-image-preview="true" @image-click="openImage" /><div ref="completionMarker" class="article-completion-marker" aria-hidden="true"></div><div class="post-actions"><button class="button like-button" :class="{ liked }" type="button" :disabled="liked || liking" @click="likeArticle">{{ liked ? '已喜欢' : '喜欢这篇' }} · {{ article.likes + (liked ? 1 : 0) }}</button><span class="reading-note">阅读进度 {{ progress }}%</span></div><Transition name="read-stamp"><div v-if="hasCompletedReading" class="read-complete-stamp" role="status" aria-live="polite"><img src="/images/ui/handmade/bookmark.webp" alt="" width="34" height="48" decoding="async"><div><strong>已读</strong><span>这一页被你认真翻完了</span></div></div></Transition></div>
+        <div class="post-content"><MarkdownBody :source="article.content" :enable-image-preview="true" @image-click="openImage" /><div ref="completionMarker" class="article-completion-marker" aria-hidden="true"></div><div class="post-actions"><div class="post-action-group"><button class="button like-button" :class="{ liked }" type="button" :disabled="liked || liking" @click="likeArticle">{{ liked ? '已喜欢' : '喜欢这篇' }} · {{ article.likes + (liked ? 1 : 0) }}</button><ArticleShare :title="article.title" :description="article.article_description" :url="shareUrl" /></div><span class="reading-note">阅读进度 {{ progress }}%</span></div><Transition name="read-stamp"><div v-if="hasCompletedReading" class="read-complete-stamp" role="status" aria-live="polite"><img src="/images/ui/handmade/bookmark.webp" alt="" width="34" height="48" decoding="async"><div><strong>已读</strong><span>这一页被你认真翻完了</span></div></div></Transition></div>
       </div>
     </article>
     <section class="post-comments"><SectionHeading eyebrow="private note">交流</SectionHeading><p class="page-lead">文章暂不开放公开评论。如果你有想法、问题或建议，欢迎私下联系站长。</p><NuxtLink class="button primary" to="/guestbook">联系站长 →</NuxtLink></section>
@@ -45,6 +45,8 @@ const { data, error } = await useAsyncData(`post-${id}`, async () => {
 if (error.value) throw error.value
 
 const article = computed(() => data.value?.article)
+const config = useRuntimeConfig()
+const shareUrl = computed(() => `${String(config.public.siteUrl || '').replace(/\/$/, '')}/posts/${id}`)
 const coverImage = computed(() => coverImageFailed.value ? '' : articleImage(article.value))
 const headings = computed(() => markdownHeadings(article.value?.content || ''))
 const tagNames = computed(() => new Map(((data.value?.tags || []) as Tag[]).map((tag) => [String(tag.id), normalizeTag(tag).name])))

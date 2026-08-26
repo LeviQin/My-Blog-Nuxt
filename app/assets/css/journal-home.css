@@ -2918,11 +2918,29 @@ body::before {
 
 .firefly-wrap {
   position: absolute;
-  right: clamp(60px, 14vw, 190px);
-  bottom: clamp(100px, 24vh, 240px);
   width: 200px;
   height: 160px;
   pointer-events: none;
+}
+
+.firefly-corner-top-left {
+  top: clamp(80px, 12vh, 140px);
+  left: clamp(24px, 6vw, 90px);
+}
+
+.firefly-corner-top-right {
+  top: clamp(80px, 12vh, 140px);
+  right: clamp(24px, 6vw, 90px);
+}
+
+.firefly-corner-bottom-left {
+  bottom: clamp(60px, 10vh, 140px);
+  left: clamp(24px, 6vw, 90px);
+}
+
+.firefly-corner-bottom-right {
+  right: clamp(24px, 6vw, 90px);
+  bottom: clamp(60px, 10vh, 140px);
 }
 
 .firefly {
@@ -3018,6 +3036,12 @@ body::before {
   line-height: 1.65;
   transform: rotate(-2deg);
   pointer-events: auto;
+}
+
+.firefly-corner-top-left .firefly-note,
+.firefly-corner-top-right .firefly-note {
+  top: 43px;
+  bottom: auto;
 }
 
 .firefly-note button,
