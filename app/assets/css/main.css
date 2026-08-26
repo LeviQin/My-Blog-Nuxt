@@ -1345,6 +1345,13 @@ h3 {
   border-radius: 16px;
 }
 
+.markdown-body img[data-explicit-size] {
+  width: min(calc(var(--markdown-image-width) * 1px), 100%);
+  height: auto;
+  max-height: none;
+  aspect-ratio: var(--markdown-image-width) / var(--markdown-image-height);
+}
+
 .markdown-image-single {
   margin: 1.5rem 0;
 }
@@ -1590,11 +1597,6 @@ h3 {
 .markdown-body th:last-child,
 .markdown-body td:last-child {
   border-right: 0;
-}
-
-.markdown-body img {
-  border: 1px solid var(--line);
-  box-shadow: var(--shadow);
 }
 
 .markdown-code-block {

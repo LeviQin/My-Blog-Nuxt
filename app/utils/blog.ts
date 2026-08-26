@@ -29,7 +29,7 @@ export function messageDate(value?: string) {
 export function normalizeTags(tags: unknown): string[] {
   if (Array.isArray(tags)) return tags.map(String).filter(Boolean)
   if (typeof tags === 'string') {
-    try { const parsed = JSON.parse(tags); if (Array.isArray(parsed)) return parsed.map(String).filter(Boolean) } catch {}
+    try { const parsed = JSON.parse(tags); if (Array.isArray(parsed)) return parsed.map(String).filter(Boolean) } catch { }
     return tags.split(/[,，]/).map((item) => item.trim()).filter(Boolean)
   }
   return []
@@ -87,13 +87,13 @@ function renderCodeBlock(code: string, language = '') {
   if (requestedLanguage !== 'text' && hljs.getLanguage(requestedLanguage)) {
     try {
       highlighted = hljs.highlight(code, { language: requestedLanguage }).value
-    } catch {}
+    } catch { }
   } else if (!language.trim()) {
     try {
       const detected = hljs.highlightAuto(code)
       highlighted = detected.value
       resolvedLanguage = detected.language || 'text'
-    } catch {}
+    } catch { }
   }
 
   const languageLabel = renderer.utils.escapeHtml(codeLanguageLabel(resolvedLanguage))
@@ -166,7 +166,10 @@ function enhanceMarkdownImages(html: string) {
   const withLoading = html.replace(/<img\b([^>]*)>/g, (_match, attributes) => {
     const loading = /\sloading\s*=/.test(attributes) ? '' : ' loading="lazy"'
     const decoding = /\sdecoding\s*=/.test(attributes) ? '' : ' decoding="async"'
-    return `<img${attributes}${loading}${decoding}>`
+    const width = imageDimension(attributes, 'width')
+    const height = imageDimension(attributes, 'height')
+    const explicitSize = width && height ? ` data-explicit-size style="--markdown-image-width:${width};--markdown-image-height:${height};"` : ''
+    return `<img${attributes}${loading}${decoding}${explicitSize}>`
   })
 
   return withLoading.replace(/(?:<p>\s*(?:(?:<img\b[^>]*>|<br\s*\/?>)\s*)+<\/p>\s*)+/g, (group) => {
@@ -175,6 +178,11 @@ function enhanceMarkdownImages(html: string) {
     const className = images.length > 1 ? 'markdown-image-gallery' : 'markdown-image-single'
     return `<div class="${className}">${images.join('')}</div>`
   })
+}
+
+function imageDimension(attributes: string, name: 'width' | 'height') {
+  const match = attributes.match(new RegExp(`\\s${name}\\s*=\\s*(?:"([0-9]+(?:\\.[0-9]+)?)(?:px)?"|'([0-9]+(?:\\.[0-9]+)?)(?:px)?'|([0-9]+(?:\\.[0-9]+)?)(?:px)?(?:\\s|$))`, 'i'))
+  return match?.[1] || match?.[2] || match?.[3] || ''
 }
 
 function normalizeAdmonitionBoundaries(value: string) {
@@ -203,6 +211,31 @@ function normalizeAdmonitionBoundaries(value: string) {
   return output.join('\n')
 }
 
+function normalizeRawImageTags(value: string) {
+  let insideFence = false
+  return value.split('\n').map((line) => {
+    if (/^\s*(```|~~~)/.test(line)) {
+      insideFence = !insideFence
+      return line
+    }
+    if (insideFence) return line
+    return line.replace(/<img\b([^>]*?)\/?>/gi, (_match, attributes) => {
+      const src = htmlAttribute(attributes, 'src')
+      if (!src) return _match
+      const alt = htmlAttribute(attributes, 'alt').replace(/[\\\]]/g, '\\$&')
+      const width = imageDimension(attributes, 'width')
+      const height = imageDimension(attributes, 'height')
+      const dimensions = width && height ? `{width=${width} height=${height}}` : ''
+      return `![${alt}](${src.replace(/[\\)]/g, '\\$&')})${dimensions}`
+    })
+  }).join('\n')
+}
+
+function htmlAttribute(attributes: string, name: string) {
+  const match = attributes.match(new RegExp(`\\s${name}\\s*=\\s*(?:"([^"]*)"|'([^']*)'|([^\\s>]+))`, 'i'))
+  return match?.[1] || match?.[2] || match?.[3] || ''
+}
+
 export function renderMarkdown(value = '') {
-  return enhanceMarkdownImages(renderer.render(normalizeAdmonitionBoundaries(value)))
+  return enhanceMarkdownImages(renderer.render(normalizeRawImageTags(normalizeAdmonitionBoundaries(value))))
 }
