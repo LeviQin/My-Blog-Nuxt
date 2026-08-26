@@ -997,6 +997,7 @@ body::before {
     width: calc(100% - 24px);
     height: 365px;
     padding: 44px 27px 30px 46px;
+    background: url(../images/ui/handmade/paper-hero.webp) 50%/105% 110% no-repeat;
   }
 
   .hero-paper::before {
@@ -1057,12 +1058,6 @@ body::before {
 
   .journal-article-grid {
     grid-template-columns: 1fr;
-  }
-
-  .journal-section-heading {
-    align-items: flex-start;
-    flex-direction: column;
-    gap: 6px;
   }
 
   .journal-article-body h3 {
@@ -1301,6 +1296,12 @@ body::before {
   --journal-shadow: 0 8px 22px rgba(89, 67, 39, .12);
   background: url('/images/ui/handmade/paper-hero.webp') center / 100% 100% no-repeat;
   box-shadow: none;
+}
+
+@media (max-width: 767px) {
+  :root[data-theme="dark"] .hero-paper {
+    background: url(../images/ui/handmade/paper-hero.webp) 50%/105% 110% no-repeat;
+  }
 }
 
 :root[data-theme="dark"] .hero-paper::before {

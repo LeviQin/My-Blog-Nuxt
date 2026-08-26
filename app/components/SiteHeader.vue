@@ -10,8 +10,14 @@
           <small v-if="settings.blog_description">{{ settings.blog_description }}</small>
         </NuxtLink>
       </div>
-      <button class="menu-button" type="button" :aria-expanded="open" aria-label="打开导航" @click="open = !open"><img src="/images/ui/icons/icon-menu.webp" alt="" width="25" height="25" decoding="async"></button>
-      <nav class="site-nav" :class="{ 'is-open': open }" aria-label="主导航">
+      <button class="menu-button" :class="{ 'is-open': open }" type="button" :aria-expanded="open" :aria-label="open ? '关闭导航' : '打开导航'" aria-controls="site-navigation" @click="open = !open">
+        <span class="menu-icon" aria-hidden="true">
+          <span class="menu-icon-line"></span>
+          <span class="menu-icon-line"></span>
+          <span class="menu-icon-line"></span>
+        </span>
+      </button>
+      <nav id="site-navigation" class="site-nav" :class="{ 'is-open': open }" aria-label="主导航">
         <NuxtLink v-for="item in navItems" :key="item.to" :to="item.to" @click="open = false">{{ item.label }}</NuxtLink>
         <form class="header-search" role="search" @submit.prevent="submitSearch">
           <label class="sr-only" for="header-keyword">搜索文章、标签</label>

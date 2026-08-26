@@ -183,10 +183,49 @@ img {
 
 .menu-button {
   display: none;
+  width: 44px;
+  height: 44px;
+  padding: 0;
   border: 0;
   color: var(--ink);
   background: transparent;
+  cursor: pointer;
   font-size: 1.5rem;
+}
+
+.menu-button:hover {
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--sage) 16%, transparent);
+}
+
+.menu-icon {
+  display: grid;
+  width: 24px;
+  height: 18px;
+  align-content: space-between;
+}
+
+.menu-icon-line {
+  display: block;
+  width: 24px;
+  height: 2px;
+  border-radius: 99px;
+  background: currentColor;
+  transform-origin: center;
+  transition: transform .24s ease, opacity .18s ease, width .24s ease;
+}
+
+.menu-button.is-open .menu-icon-line:first-child {
+  transform: translateY(8px) rotate(45deg);
+}
+
+.menu-button.is-open .menu-icon-line:nth-child(2) {
+  opacity: 0;
+  transform: scaleX(0);
+}
+
+.menu-button.is-open .menu-icon-line:last-child {
+  transform: translateY(-8px) rotate(-45deg);
 }
 
 .hero {
@@ -6018,7 +6057,6 @@ body::before {
 }
 
 /* Site-wide icon contrast: controls follow the text color; content markers use sage. */
-.menu-button img,
 .social-links img,
 .footer-inner img {
   filter: grayscale(1) brightness(.28);
@@ -6033,7 +6071,6 @@ body::before {
   transition: filter .2s ease;
 }
 
-:root[data-theme="dark"] .menu-button img,
 :root[data-theme="dark"] .social-links img,
 :root[data-theme="dark"] .footer-inner img {
   filter: grayscale(1) invert(1) brightness(1.65);
@@ -6062,6 +6099,39 @@ body::before {
 
   .site-nav {
     margin-left: auto;
+  }
+}
+
+/* Mobile navigation state and motion: keep the existing menu layout while making open/close reversible. */
+@media (max-width: 820px) {
+  .menu-button {
+    display: grid;
+    place-items: center;
+  }
+
+  .site-nav {
+    display: grid;
+    visibility: hidden;
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(-10px) scale(.98);
+    transform-origin: top right;
+    transition: opacity .22s ease, transform .22s ease, visibility 0s linear .22s;
+  }
+
+  .site-nav.is-open {
+    visibility: visible;
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(0) scale(1);
+    transition-delay: 0s;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .menu-icon-line,
+  .site-nav {
+    transition-duration: .01ms;
   }
 }
 
