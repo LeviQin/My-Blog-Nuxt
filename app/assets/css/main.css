@@ -6459,6 +6459,11 @@ body::before {
   .home-content {
     width: calc(100% - 28px);
   }
+
+  .post-cover-trigger .post-cover {
+    height: clamp(260px, 78vw, 420px);
+    object-fit: cover;
+  }
 }
 
 /* Keep the content rail flush and normalize navigation utility icons. */

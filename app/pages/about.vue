@@ -48,7 +48,7 @@ const projects = computed(() => (data.value?.projects || []) as BlogProject[])
 const featuredProjects = computed(() => projects.value.filter((project) => project.isFeatured === true || project.isFeatured === 1))
 function projectNumber(index: number) { return String(index + 1).padStart(2, '0') }
 const hasAboutIntro = computed(() => Boolean(settings.value.blog_about_title || settings.value.blog_about_job || settings.value.blog_logo || settings.value.blog_about_bg_img))
-const abilityItems = computed(() => String(settings.value.blog_ability_description || '').split(/<\/p>\s*<p[^>]*>/i).map((item) => item.replace(/<[^>]*>/g, '').trim()).filter(Boolean))
+const abilityItems = computed(() => String(settings.value.blog_ability_description || '').split(/<\/p>\s*<p[^>]*>|\r?\n+/i).map((item) => item.replace(/<[^>]*>/g, '').trim()).filter(Boolean))
 const hasAbility = computed(() => Boolean(settings.value.blog_ability_title || settings.value.blog_ability_description || settings.value.blog_ability_bg_img))
 const hasContact = computed(() => Boolean(settings.value.blog_connect_email || settings.value.blog_connect_wx || settings.value.blog_connect_qq || settings.value.blog_connect_github))
 const hasContactSection = computed(() => Boolean(settings.value.blog_connect_title || hasContact.value || settings.value.blog_connect_wx_image || settings.value.blog_connect_bg_img))
