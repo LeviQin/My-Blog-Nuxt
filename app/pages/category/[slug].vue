@@ -7,8 +7,8 @@
     <p class="page-lead">{{ intro }}</p>
 
     <div v-if="isCollection" class="collection-toolbar">
-      <span class="collection-count">{{ displayArticles.length }} 条记录</span>
-      <div v-if="isPhoto" class="collection-filters" aria-label="按年份筛选">
+      <span class="collection-count">{{ displayArticles.length }} {{ isPhoto ? "张作品" : "条记录" }}</span>
+      <div v-if="isPhoto || isDaily" class="collection-filters" aria-label="按年份筛选">
         <button
           v-for="year in photoYears"
           :key="year"
@@ -57,41 +57,26 @@
       </NuxtLink>
     </div>
 
-    <div v-else-if="displayArticles.length && isPhoto" class="photo-collection">
-      <NuxtLink
-        v-for="(article, index) in displayArticles"
+    <div v-else-if="displayArticles.length && isPhoto" class="photo-gallery">
+      <PhotoGalleryCard
+        v-for="article in displayArticles"
         :key="article.id"
-        class="photo-card"
-        :class="{ 'photo-card--wide': index % 5 === 0 }"
-        :to="`/posts/${article.id}`"
-      >
-        <div class="photo-frame">
-          <img
-            v-if="photoImage(article)"
-            :src="photoImage(article)"
-            :alt="article.title"
-            loading="lazy"
-            decoding="async"
-            @error="onPhotoError($event, article)"
-          /><span
-            v-else
-            class="photo-frame-placeholder"
-            aria-label="未配置文章封面"
-          /><span class="photo-view">查看故事</span>
-        </div>
-        <div class="photo-caption">
-          <time :datetime="article.published_at || article.updated_at">{{
-            articleDate(article.published_at || article.updated_at)
-          }}</time>
-          <h2>{{ article.title }}</h2>
-          <p v-if="article.article_description">{{ article.article_description }}</p>
-          <div v-if="visibleTags(article).length" class="tag-row">
-            <span v-for="tag in visibleTags(article)" :key="tag" class="tag"
-              ># {{ tag }}</span
-            >
-          </div>
-        </div>
-      </NuxtLink>
+        :article="article"
+        :tag-names="tagNames"
+        @image-click="openLightbox"
+      />
+    </div>
+
+    <div v-else-if="displayArticles.length && isDaily" class="life-moments">
+      <LifeMomentCard
+        v-for="article in displayArticles"
+        :key="article.id"
+        :article="article"
+        :tag-names="tagNames"
+        :author-name="authorName"
+        :author-image="authorImage"
+        @image-click="openLightbox"
+      />
     </div>
 
     <div v-else-if="displayArticles.length" class="article-grid">
@@ -106,9 +91,19 @@
     <EmptyState
       v-else
       :title="
-        isPhoto && photoYear !== '全部' ? `${photoYear} 年还没有照片` : '这个分类还很安静'
+        (isPhoto || isDaily) && photoYear !== '全部'
+          ? `${photoYear} 年还没有记录`
+          : '这个分类还很安静'
       "
       message="暂时没有找到公开文章。"
+    />
+
+    <ImageLightbox
+      :open="Boolean(lightboxImage)"
+      :src="lightboxImage?.src || ''"
+      :alt="lightboxImage?.alt || ''"
+      :dialog-label="lightboxImage?.dialogLabel || '查看大图'"
+      @close="closeLightbox"
     />
   </div>
 </template>
@@ -145,6 +140,7 @@ const { data } = await useAsyncData(`category-${category.slug}`, async () => {
   };
 });
 const articles = computed(() => (data.value?.articles || []) as Article[]);
+const { settings } = useSiteSettings();
 const tagNames = computed(
   () =>
     new Map(
@@ -164,14 +160,20 @@ const categoryNames = computed(
     )
 );
 const failedImages = ref<Record<string, boolean>>({});
+const authorName = computed(() => String(settings.value.blog_name || '').trim());
+const authorImage = computed(() => String(settings.value.blog_logo || '').trim());
+const lightboxImage = ref<{ src: string; alt: string; dialogLabel: string } | null>(null);
 const isPet = computed(() => category.slug === "pets");
 const isPhoto = computed(() => category.slug === "photo");
-const isCollection = computed(() => isPet.value || isPhoto.value);
+const isDaily = computed(() => category.slug === "daily");
+const isCollection = computed(() => isPet.value || isPhoto.value || isDaily.value);
 const intro = computed(() =>
   isPet.value
     ? "把每一次撒娇、奔跑和回头，都收进一册柔软的生活相册。"
     : isPhoto.value
     ? "用更大的留白，保存路上遇见的光、风景和安静时刻。"
+    : isDaily.value
+    ? "把日常里值得记住的片段，慢慢收进这一页。"
     : `在这一页，收好关于${category.name}的片段。`
 );
 const photoYear = ref("全部");
@@ -188,7 +190,7 @@ const photoYears = computed(() => [
   ),
 ]);
 const displayArticles = computed(() => {
-  if (!isPhoto.value || photoYear.value === "全部") return articles.value;
+  if ((!isPhoto.value && !isDaily.value) || photoYear.value === "全部") return articles.value;
   return articles.value.filter(
     (article) =>
       String(new Date(article.published_at || article.updated_at).getFullYear()) ===
@@ -212,6 +214,12 @@ function onPhotoError(event: Event, article: Article) {
   const image = event.currentTarget as HTMLImageElement;
   image.onerror = null;
   failedImages.value = { ...failedImages.value, [String(article.id)]: true };
+}
+function openLightbox(image: { src: string; alt: string; dialogLabel: string }) {
+  lightboxImage.value = image;
+}
+function closeLightbox() {
+  lightboxImage.value = null;
 }
 
 useBlogSeo({
