@@ -3,7 +3,7 @@ const moduleRules = [
   { key: 'show_widget_module' as const, matches: (path: string) => path === '/lab' || path.startsWith('/lab/') },
   { key: 'show_sites_module' as const, matches: (path: string) => path === '/sites' },
   { key: 'show_guestbook_module' as const, matches: (path: string) => path === '/guestbook' },
-  { key: 'show_friend_link_module' as const, matches: (path: string) => path === '/links' },
+  { key: 'show_friend_link_module' as const, matches: (path: string) => path === '/friends' },
   { key: 'show_about_module' as const, matches: (path: string) => path === '/about' },
 ]
 

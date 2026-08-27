@@ -1,7 +1,7 @@
 <template>
   <div
     class="container page-section category-page"
-    :class="{ 'collection-page': isCollection }"
+    :class="{ 'collection-page': isCollection, 'learning-page': isLearning }"
   >
     <SectionHeading eyebrow="category" :level="1">{{ category.name }}</SectionHeading>
     <p class="page-lead">{{ intro }}</p>
@@ -76,6 +76,16 @@
         :author-name="authorName"
         :author-image="authorImage"
         @image-click="openLightbox"
+      />
+    </div>
+
+    <div v-else-if="displayArticles.length && isLearning" class="learning-notes">
+      <LearningNoteCard
+        v-for="(article, index) in displayArticles"
+        :key="article.id"
+        :article="article"
+        :index="index + 1"
+        :tag-names="tagNames"
       />
     </div>
 
@@ -166,6 +176,7 @@ const lightboxImage = ref<{ src: string; alt: string; dialogLabel: string } | nu
 const isPet = computed(() => category.slug === "pets");
 const isPhoto = computed(() => category.slug === "photo");
 const isDaily = computed(() => category.slug === "daily");
+const isLearning = computed(() => category.slug === "learning");
 const isCollection = computed(() => isPet.value || isPhoto.value || isDaily.value);
 const intro = computed(() =>
   isPet.value

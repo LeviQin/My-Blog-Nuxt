@@ -10,24 +10,43 @@
           <small v-if="settings.blog_description">{{ settings.blog_description }}</small>
         </NuxtLink>
       </div>
-      <button class="menu-button" :class="{ 'is-open': open }" type="button" :aria-expanded="open" :aria-label="open ? '关闭导航' : '打开导航'" aria-controls="site-navigation" @click="open = !open">
-        <span class="menu-icon" aria-hidden="true">
-          <span class="menu-icon-line"></span>
-          <span class="menu-icon-line"></span>
-          <span class="menu-icon-line"></span>
-        </span>
-      </button>
       <nav id="site-navigation" class="site-nav" :class="{ 'is-open': open }" aria-label="主导航">
         <NuxtLink v-for="item in navItems" :key="item.to" :to="item.to" @click="open = false">{{ item.label }}</NuxtLink>
-        <form class="header-search" role="search" @submit.prevent="submitSearch">
-          <label class="sr-only" for="header-keyword">搜索文章、标签</label>
-          <input id="header-keyword" v-model="keyword" type="search" placeholder="搜索文章、标签...">
-          <button type="submit" aria-label="提交搜索"><img src="/images/ui/handmade/magnifier.webp" alt="" width="25" height="25" decoding="async"></button>
-        </form>
-        <button class="theme-button" type="button" :aria-label="theme === 'light' ? '切换深色主题' : '切换浅色主题'" @click="toggleTheme"><img :src="theme === 'light' ? '/images/ui/handmade/moon.webp' : '/images/ui/handmade/sun.webp'" alt="" width="25" height="25" decoding="async"></button>
       </nav>
+      <div class="header-actions">
+        <button
+          ref="searchTrigger"
+          class="nav-search search-trigger"
+          type="button"
+          :aria-expanded="searchOpen"
+          :aria-label="searchOpen ? '关闭搜索' : '打开搜索'"
+          aria-controls="header-search-popover"
+          @click="toggleSearch"
+        >
+          <img src="/images/ui/handmade/magnifier.webp" alt="" width="25" height="25" decoding="async">
+        </button>
+        <button class="theme-button" type="button" :aria-label="theme === 'light' ? '切换深色主题' : '切换浅色主题'" @click="toggleTheme"><img :src="theme === 'light' ? '/images/ui/handmade/moon.webp' : '/images/ui/handmade/sun.webp'" alt="" width="25" height="25" decoding="async"></button>
+        <button class="menu-button" :class="{ 'is-open': open }" type="button" :aria-expanded="open" :aria-label="open ? '关闭导航' : '打开导航'" aria-controls="site-navigation" @click="open = !open">
+          <span class="menu-icon" aria-hidden="true">
+            <span class="menu-icon-line"></span>
+            <span class="menu-icon-line"></span>
+            <span class="menu-icon-line"></span>
+          </span>
+        </button>
+      </div>
     </div>
   </header>
+  <Teleport to="body">
+    <Transition name="header-search">
+      <div v-if="searchOpen" class="header-search-layer" :style="{ paddingTop: `${searchLayerTop}px` }" @click.self="closeSearch">
+        <form id="header-search-popover" class="header-search-popover" role="search" @submit.prevent="submitSearch">
+          <label class="sr-only" for="header-keyword">搜索文章、标签</label>
+          <input id="header-keyword" ref="searchInput" v-model="keyword" type="search" placeholder="搜索文章、标签..." @keydown.enter.prevent="submitSearch">
+          <button type="submit" aria-label="提交搜索"><img src="/images/ui/handmade/magnifier.webp" alt="" width="25" height="25" decoding="async"></button>
+        </form>
+      </div>
+    </Transition>
+  </Teleport>
   <Transition name="secret-note">
     <div v-if="secretOpen" class="secret-note-backdrop" role="presentation" @click.self="secretOpen = false">
       <section class="secret-note" role="dialog" aria-modal="true" aria-labelledby="secret-note-title">
@@ -47,24 +66,57 @@
 <script setup lang="ts">
 const open = ref(false)
 const keyword = ref('')
+const searchOpen = ref(false)
+const searchLayerTop = ref(0)
+const searchTrigger = ref<HTMLButtonElement>()
+const searchInput = ref<HTMLInputElement>()
 const { theme, toggleTheme } = useTheme()
 const { settings } = useSiteSettings()
 const router = useRouter()
 const secretOpen = ref(false)
 const navItems = computed(() => [
   { label: '首页', to: '/' }, { label: '文章', to: '/articles' }, { label: '归档', to: '/archive' }, { label: '作品', to: '/portfolio' },
-  ...(isSiteModuleEnabled(settings.value, 'show_friend_link_module') ? [{ label: '友链', to: '/links' }] : []),
+  ...(isSiteModuleEnabled(settings.value, 'show_friend_link_module') ? [{ label: '友链', to: '/friends' }] : []),
   ...(isSiteModuleEnabled(settings.value, 'show_sites_module') ? [{ label: '常用网站', to: '/sites' }] : []),
   ...(isSiteModuleEnabled(settings.value, 'show_widget_module') ? [{ label: '实验室', to: '/lab' }] : []),
   ...(isSiteModuleEnabled(settings.value, 'show_guestbook_module') ? [{ label: '联系', to: '/guestbook' }] : []),
   ...(isSiteModuleEnabled(settings.value, 'show_about_module') ? [{ label: '关于', to: '/about' }] : []),
 ])
-function submitSearch() { const value = keyword.value.trim(); if (value) router.push({ path: '/search', query: { keyword: value } }); open.value = false }
+function openSearch() {
+  open.value = false
+  searchOpen.value = true
+  nextTick(() => {
+    updateSearchPosition()
+    searchInput.value?.focus()
+  })
+}
+function closeSearch() {
+  searchOpen.value = false
+}
+function toggleSearch() {
+  if (searchOpen.value) closeSearch()
+  else openSearch()
+}
+function submitSearch() { const value = keyword.value.trim(); if (value) router.push({ path: '/search', query: { keyword: value } }); closeSearch() }
 
-function closeSecretOnEscape(event: KeyboardEvent) {
-  if (event.key === 'Escape') secretOpen.value = false
+function updateSearchPosition() {
+  const rect = searchTrigger.value?.getBoundingClientRect()
+  if (rect) searchLayerTop.value = rect.bottom + 10
 }
 
-onMounted(() => window.addEventListener('keydown', closeSecretOnEscape))
-onBeforeUnmount(() => window.removeEventListener('keydown', closeSecretOnEscape))
+function closeSecretOnEscape(event: KeyboardEvent) {
+  if (event.key === 'Escape') {
+    secretOpen.value = false
+    closeSearch()
+  }
+}
+
+onMounted(() => {
+  window.addEventListener('keydown', closeSecretOnEscape)
+  window.addEventListener('resize', updateSearchPosition)
+})
+onBeforeUnmount(() => {
+  window.removeEventListener('keydown', closeSecretOnEscape)
+  window.removeEventListener('resize', updateSearchPosition)
+})
 </script>
