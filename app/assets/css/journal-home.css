@@ -1,7 +1,7 @@
 /* Homepage visual system for the cream-paper journal direction. */
 @font-face {
   font-family: "MaoKen";
-  src: url("/fonts/MaoKenWangXingYuan-2.woff") format("woff");
+  src: url("/fonts/MaoKenWangXingYuan-2.woff2") format("woff2");
   font-display: swap;
 }
 
