@@ -83,6 +83,9 @@ NUXT_API_BASE=http://127.0.0.1:3000
 
 # 网站公开访问地址，用于 SEO 和 Open Graph 信息
 NUXT_PUBLIC_SITE_URL=http://localhost:3006
+
+# Nuxt 前面的反向代理或容器网段；生产环境按实际网络填写
+NUXT_TRUSTED_PROXY_IPS=127.0.0.1,::1,172.19.0.0/16
 ```
 
 ### 3. 启动开发服务

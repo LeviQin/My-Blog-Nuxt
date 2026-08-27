@@ -14,6 +14,11 @@ export default defineEventHandler(async (event): Promise<unknown> => {
     },
   }
 
+  const userAgent = getHeader(event, 'user-agent')
+  if (userAgent) {
+    ;(requestOptions.headers as Record<string, string>)['user-agent'] = userAgent
+  }
+
   const clientIp = getTrustedClientIp(event)
   if (clientIp) {
     ;(requestOptions.headers as Record<string, string>)['x-forwarded-for'] = clientIp
@@ -49,15 +54,37 @@ function normalizeAddress(value: unknown) {
   return String(value || '').replace(/^::ffff:/i, '').trim()
 }
 
-function getTrustedProxyAddresses() {
+function getTrustedProxyEntries() {
   const configured = process.env.NUXT_TRUSTED_PROXY_IPS || process.env.TRUSTED_PROXY_IPS || '127.0.0.1,::1,::ffff:127.0.0.1'
-  return new Set(configured.split(',').map(normalizeAddress).filter(Boolean))
+  return configured.split(',').map(normalizeAddress).filter(Boolean)
+}
+
+function ipv4ToNumber(value: string) {
+  const parts = String(value || '').split('.')
+  if (parts.length !== 4 || parts.some((part) => !/^\d{1,3}$/.test(part) || Number(part) > 255)) return null
+  return parts.reduce((number, part) => number * 256 + Number(part), 0)
+}
+
+function matchesTrustedProxy(address: string, entry: string) {
+  if (address === entry) return true
+  const [network, prefixText] = entry.split('/')
+  if (prefixText === undefined) return false
+  const prefix = Number(prefixText)
+  const addressNumber = ipv4ToNumber(address)
+  const networkNumber = ipv4ToNumber(network)
+  if (addressNumber === null || networkNumber === null || !Number.isInteger(prefix) || prefix < 0 || prefix > 32) return false
+  const mask = prefix === 0 ? 0 : (0xffffffff << (32 - prefix)) >>> 0
+  return (addressNumber & mask) === (networkNumber & mask)
+}
+
+function isTrustedProxy(address: string) {
+  return getTrustedProxyEntries().some((entry) => matchesTrustedProxy(address, entry))
 }
 
 function getTrustedClientIp(event: any) {
   const socketIp = normalizeAddress(getRequestIP(event))
   if (!socketIp) return ''
-  if (!getTrustedProxyAddresses().has(socketIp)) return socketIp
+  if (!isTrustedProxy(socketIp)) return socketIp
   const candidates = [
     getHeader(event, 'cf-connecting-ip'),
     getHeader(event, 'true-client-ip'),
