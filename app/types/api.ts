@@ -2,6 +2,7 @@ export interface ApiResponse<T> { code: number; data: T; message?: string }
 
 export interface Article {
   id: number; title: string; article_description: string; image: string; category: string;
+  gallery_images?: string[];
   article_tags: string[]; is_top: number | boolean; is_show: number | boolean;
   view_count: number; likes: number; published_at: string; updated_at: string; content_updated_at?: string; content?: string
 }

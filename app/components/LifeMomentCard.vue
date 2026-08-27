@@ -27,21 +27,46 @@
         <p v-if="article.article_description">{{ article.article_description }}</p>
       </div>
 
+      <div
+        v-if="galleryImages.length > 1"
+        class="life-moment-gallery"
+        :class="{ 'life-moment-gallery--two': galleryImages.length === 2 }"
+        aria-label="生活照片"
+      >
+        <button
+          v-for="(image, index) in galleryImages"
+          :key="image"
+          class="life-moment-gallery-item"
+          type="button"
+          :aria-label="`查看《${article.title}》第${index + 1}张大图`"
+          aria-haspopup="dialog"
+          @click="openPreview(image, index)"
+        >
+          <img
+            class="life-moment-gallery-image"
+            :src="image"
+            :alt="`${article.title} 第${index + 1}张照片`"
+            loading="lazy"
+            decoding="async"
+            @error="onImageError($event, image)"
+          />
+        </button>
+      </div>
       <button
-        v-if="coverImage"
+        v-else-if="galleryImages[0]"
         class="life-moment-image-button"
         type="button"
         :aria-label="`查看《${article.title}》大图`"
         aria-haspopup="dialog"
-        @click="openPreview"
+        @click="openPreview(galleryImages[0], 0)"
       >
         <img
           class="life-moment-image"
-          :src="coverImage"
+          :src="galleryImages[0]"
           :alt="article.title"
           loading="lazy"
           decoding="async"
-          @error="imageFailed = true"
+          @error="onImageError($event, galleryImages[0])"
         />
       </button>
 
@@ -60,7 +85,7 @@
 
 <script setup lang="ts">
 import type { Article } from '~/types/api'
-import { articleDate, articleImage } from '~/utils/blog'
+import { articleDate, articleImage, dedupeGalleryImages } from '~/utils/blog'
 
 const props = defineProps<{
   article: Article
@@ -72,21 +97,32 @@ const emit = defineEmits<{
   'image-click': [image: { src: string; alt: string; dialogLabel: string }]
 }>()
 
-const imageFailed = ref(false)
+const failedImages = ref<Record<string, boolean>>({})
 const avatarFailed = ref(false)
-const coverImage = computed(() => imageFailed.value ? '' : articleImage(props.article))
 const authorName = computed(() => String(props.authorName || '').trim())
 const authorImage = computed(() => String(props.authorImage || '').trim())
 const authorInitial = computed(() => authorName.value.slice(0, 1).toUpperCase())
+const galleryImages = computed(() => {
+  const configuredImages = Array.isArray(props.article.gallery_images)
+    ? props.article.gallery_images
+    : []
+  const images = configuredImages.length ? configuredImages : [articleImage(props.article)]
+  return dedupeGalleryImages(images).filter((image) => !failedImages.value[image]).slice(0, 9)
+})
 const visibleTags = computed(() => props.article.article_tags
   .slice(0, 3)
   .map((tag) => props.tagNames?.get(String(tag)) || (/^\d+$/.test(String(tag)) ? '' : String(tag)))
   .filter(Boolean))
 
-function openPreview() {
-  if (coverImage.value) emit('image-click', {
-    src: coverImage.value,
-    alt: props.article.title,
+function onImageError(event: Event, image: string) {
+  const target = event.currentTarget as HTMLImageElement
+  target.onerror = null
+  failedImages.value = { ...failedImages.value, [image]: true }
+}
+function openPreview(image: string, index: number) {
+  if (image) emit('image-click', {
+    src: image,
+    alt: `${props.article.title} 第${index + 1}张照片`,
     dialogLabel: '查看生活碎片大图',
   })
 }

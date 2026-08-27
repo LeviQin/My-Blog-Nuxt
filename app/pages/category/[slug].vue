@@ -141,7 +141,10 @@ if (!category) throw createError({ statusCode: 404, statusMessage: "分类不存
 
 const { data } = await useAsyncData(`category-${category.slug}`, async () => {
   const [articleResult, tagResult] = await Promise.allSettled([
-    api.articles({ category: category.value }),
+    api.articles({
+      category: category.value,
+      ...(category.slug === "daily" ? { include_gallery: "1" } : {}),
+    }),
     api.tags(),
   ]);
   return {

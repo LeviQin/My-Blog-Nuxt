@@ -5,6 +5,30 @@ import markdownItAttrs from 'markdown-it-attrs'
 
 export function articleImage(article?: Pick<Article, 'image'>) { return String(article?.image || '').trim() }
 
+function galleryImageKey(value: string) {
+  try {
+    const parsed = new URL(value, 'http://localhost')
+    const pathname = decodeURIComponent(parsed.pathname).replace(/\/+$/, '')
+    const legacyMatch = pathname.match(/\/(?:articleImages|editorImages)\/([^/]+)$/i)
+    return legacyMatch?.[1] || `${parsed.host.toLowerCase()}${pathname}`
+  } catch {
+    return value.split(/[?#]/, 1)[0].toLowerCase()
+  }
+}
+
+export function dedupeGalleryImages(values: unknown[]) {
+  const seen = new Set<string>()
+  return values
+    .map((value) => String(value || '').trim())
+    .filter((value) => {
+      if (!value) return false
+      const key = galleryImageKey(value)
+      if (seen.has(key)) return false
+      seen.add(key)
+      return true
+    })
+}
+
 export function categoryName(value?: string | number) {
   const category = String(value || '').trim()
   return /^\d+$/.test(category) ? '' : category
