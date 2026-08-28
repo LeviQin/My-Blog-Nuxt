@@ -41,7 +41,7 @@
                 <div class="journal-article-body">
                   <h3><NuxtLink :to="articlePath(article)">{{ article.title }}</NuxtLink></h3>
                   <p v-if="article.article_description">{{ article.article_description }}</p>
-                  <div class="article-meta"><time :datetime="article.published_at || article.updated_at">{{ articleDate(article.published_at || article.updated_at) }}</time><span v-if="categoryName(article.category)">{{ categoryName(article.category) }}</span></div>
+                  <div class="article-meta"><span v-if="isPinnedArticle(article)" class="article-pin" aria-label="置顶文章">置顶</span><time :datetime="article.published_at || article.updated_at">{{ articleDate(article.published_at || article.updated_at) }}</time><span v-if="categoryName(article.category)">{{ categoryName(article.category) }}</span></div>
                   <div class="journal-tags"><template v-for="tag in articleTags(article)" :key="tag.id || tag.name"><NuxtLink v-if="tag.href" :to="tag.href"># {{ tag.name }}</NuxtLink><span v-else># {{ tag.name }}</span></template></div>
                 </div>
               </article>
@@ -88,7 +88,7 @@
 
 <script setup lang="ts">
 import type { Tag } from '~/types/api'
-import { articleDate, articleImage as resolveArticleImage, resolveArticleTags } from '~/utils/blog'
+import { articleDate, articleImage as resolveArticleImage, isPinnedArticle, resolveArticleTags } from '~/utils/blog'
 
 const api = useBlogApi()
 const { data, error } = await useAsyncData('home', async () => {

@@ -5,6 +5,10 @@ import markdownItAttrs from 'markdown-it-attrs'
 
 export function articleImage(article?: Pick<Article, 'image'>) { return String(article?.image || '').trim() }
 
+export function isPinnedArticle(article?: Pick<Article, 'is_top'>) {
+  return article?.is_top === true || Number(article?.is_top) === 1
+}
+
 function galleryImageKey(value: string) {
   try {
     const parsed = new URL(value, 'http://localhost')

@@ -6,7 +6,7 @@
     </div>
     <article>
       <header class="post-header">
-        <div class="article-meta"><time :datetime="article.published_at || article.updated_at">{{ articleDate(article.published_at || article.updated_at) }}</time><span v-if="categoryLabel">{{ categoryLabel }}</span><span>{{ article.view_count }} 次阅读</span></div>
+        <div class="article-meta"><span v-if="isPinnedArticle(article)" class="article-pin" aria-label="置顶文章">置顶</span><time :datetime="article.published_at || article.updated_at">{{ articleDate(article.published_at || article.updated_at) }}</time><span v-if="categoryLabel">{{ categoryLabel }}</span><span>{{ article.view_count }} 次阅读</span></div>
         <h1>{{ article.title }}</h1>
         <p>{{ article.article_description }}</p>
         <div v-if="visibleTags.length" class="tag-row"><template v-for="tag in visibleTags" :key="tag.id || tag.name"><NuxtLink v-if="tag.href" class="tag" :to="tag.href"># {{ tag.name }}</NuxtLink><span v-else class="tag"># {{ tag.name }}</span></template></div>
@@ -28,7 +28,7 @@
 
 <script setup lang="ts">
 import type { Category, Tag } from '~/types/api'
-import { articleDate, articleImage, markdownHeadings, resolveArticleTags } from '~/utils/blog'
+import { articleDate, articleImage, isPinnedArticle, markdownHeadings, resolveArticleTags } from '~/utils/blog'
 
 const route = useRoute()
 const api = useBlogApi()
