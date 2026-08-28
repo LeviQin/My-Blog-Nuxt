@@ -65,7 +65,22 @@ export function normalizeArticle(item: any): Article {
 
 export function normalizeTag(item: Tag | string) {
   if (typeof item === 'string') return { name: item, count: 0 }
-  return { name: String(item.name || item.tag_name || ''), count: Number(item.count || item.article_count || 0) }
+  return { name: String(item.name || item.tag_name || ''), count: Number(item.count || item.article_count || item.associated_article_count || 0) }
+}
+
+export interface ArticleTagItem { name: string; id?: string; href?: string }
+
+export function resolveArticleTags(values: unknown, tags: Tag[] = [], limit?: number): ArticleTagItem[] {
+  const byId = new Map(tags.filter((tag) => tag.id !== undefined).map((tag) => [String(tag.id), tag]))
+  const byName = new Map(tags.map((tag) => [normalizeTag(tag).name, tag]))
+  const items = normalizeTags(values).map((raw) => {
+    const tag = byId.get(raw) || byName.get(raw)
+    const name = tag ? normalizeTag(tag).name : (/^\d+$/.test(raw) ? '' : raw)
+    if (!name) return undefined
+    const id = tag?.id === undefined ? undefined : String(tag.id)
+    return { name, id, href: id ? `/tags/${encodeURIComponent(id)}` : undefined }
+  }).filter((item): item is ArticleTagItem => Boolean(item))
+  return limit ? items.slice(0, limit) : items
 }
 
 function archiveTimestamp(article: Article) {

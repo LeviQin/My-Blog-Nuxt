@@ -3,7 +3,7 @@
     <SectionHeading eyebrow="all stories" :level="1">全部文章</SectionHeading>
     <div class="articles-toolbar"><p class="page-lead">浏览所有公开文章，按卡片方式查看封面、分类和标签。</p><span v-if="pagination.total">共 {{ pagination.total }} 篇文章</span></div>
     <div v-if="articles.length" class="article-grid">
-      <ArticleCard v-for="article in articles" :key="article.id" :article="article" :tag-names="tagNames" />
+      <ArticleCard v-for="article in articles" :key="article.id" :article="article" :tags="tags" />
     </div>
     <EmptyState v-else title="还没有文章" message="文章正在整理中。" />
     <nav v-if="pagination.totalPages > 1" class="article-pagination" aria-label="文章分页">
@@ -23,7 +23,6 @@
 
 <script setup lang="ts">
 import type { Article, Tag } from '~/types/api'
-import { normalizeTag } from '~/utils/blog'
 
 const api = useBlogApi()
 const route = useRoute()
@@ -37,7 +36,7 @@ const { data } = await useAsyncData('articles-page', async () => {
 }, { default: () => ({ articles: { items: [], total: 0, page: 1, pageSize: 12, totalPages: 0 }, tags: [] }), watch: [page] })
 const articles = computed(() => (data.value?.articles?.items || []) as Article[])
 const pagination = computed(() => data.value?.articles || { items: [], total: 0, page: 1, pageSize: 12, totalPages: 0 })
-const tagNames = computed(() => new Map(((data.value?.tags || []) as Tag[]).map((tag) => [String(tag.id), normalizeTag(tag).name])))
+const tags = computed(() => (data.value?.tags || []) as Tag[])
 const pageNumbers = computed<Array<number | '…'>>(() => {
   const total = pagination.value.totalPages
   if (total <= 7) return Array.from({ length: total }, (_, index) => index + 1)

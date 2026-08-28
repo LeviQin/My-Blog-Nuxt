@@ -808,12 +808,18 @@ body::before {
   padding-top: 10px;
 }
 
-.journal-tags span {
+.journal-tags span,
+.journal-tags a {
   padding: 4px 9px;
   border-radius: 999px;
   color: #6b6a4e;
   background: #eee9d6;
   font-size: .64rem;
+}
+
+.journal-tags a:hover,
+.journal-tags a:focus-visible {
+  color: #3f543e;
 }
 
 .back-to-top {
@@ -1369,7 +1375,8 @@ body::before {
 
 :root[data-theme="dark"] .profile-badge,
 :root[data-theme="dark"] .profile-tags span,
-:root[data-theme="dark"] .journal-tags span {
+:root[data-theme="dark"] .journal-tags span,
+:root[data-theme="dark"] .journal-tags a {
   color: #e2edc9;
   background: #3d4d36;
 }
@@ -4341,7 +4348,7 @@ body::before {
 .journal-card,
 .time-capsule-search,
 .time-capsule,
-.archive-items a {
+.archive-items .archive-item {
   transition: background-color .45s ease, color .45s ease, border-color .45s ease;
 }
 

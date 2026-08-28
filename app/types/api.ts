@@ -8,7 +8,7 @@ export interface Article {
 }
 export interface PaginatedArticles { items: Article[]; total: number; page: number; pageSize: number; totalPages: number }
 
-export interface Tag { id?: number; name?: string; tag_name?: string; count?: number; article_count?: number }
+export interface Tag { id?: number; name?: string; tag_name?: string; count?: number; article_count?: number; associated_article_count?: number }
 export interface Category { id: number; name?: string; category_name?: string; slug: string; description?: string; color?: string; icon?: string; sort?: number; status?: number; article_count?: number }
 export interface SiteSetting {
   blog_name?: string; blog_logo?: string; blog_description?: string;

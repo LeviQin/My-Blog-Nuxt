@@ -47,18 +47,25 @@ export default defineEventHandler(async (event) => {
     }
   }
 
-  const [articleData, categoryData] = await Promise.all([
+  const [articleData, categoryData, tagData] = await Promise.all([
     fetchApi<any[]>('articles/article'),
     fetchApi<any[]>('articles/categories'),
+    fetchApi<any[]>('articles/tags'),
   ])
   const articles = (Array.isArray(articleData) ? articleData : Array.isArray((articleData as any)?.items) ? (articleData as any).items : [])
     .filter((article: any) => article?.is_show === undefined || article.is_show === true || Number(article.is_show) === 1)
   const categories = (Array.isArray(categoryData) ? categoryData : [])
     .filter((category: any) => category?.status === undefined || category.status === true || Number(category.status) === 1)
+  const tags = (Array.isArray(tagData) ? tagData : [])
+    .filter((tag: any) => (tag?.status === undefined || tag.status === true || Number(tag.status) === 1) && Number(tag?.associated_article_count || tag?.article_count || tag?.count || 0) > 0)
 
   for (const category of categories) {
     const slug = String(category?.slug || '').trim()
     if (slug) add(`/category/${encodeURIComponent(slug)}`)
+  }
+  for (const tag of tags) {
+    const id = Number(tag?.id)
+    if (Number.isFinite(id) && id > 0) add(`/tags/${id}`)
   }
   for (const article of articles) {
     const id = Number(article?.id)

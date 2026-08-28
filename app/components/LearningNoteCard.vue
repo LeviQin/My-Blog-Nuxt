@@ -32,7 +32,7 @@
         <p v-if="article.article_description">{{ article.article_description }}</p>
 
         <div v-if="visibleTags.length" class="learning-note-tags" aria-label="学习标签">
-          <span v-for="tag in visibleTags" :key="tag"># {{ tag }}</span>
+          <template v-for="tag in visibleTags" :key="tag.id || tag.name"><NuxtLink v-if="tag.href" :to="tag.href"># {{ tag.name }}</NuxtLink><span v-else># {{ tag.name }}</span></template>
         </div>
 
         <NuxtLink class="learning-note-read" :to="`/posts/${article.id}`">
@@ -44,13 +44,13 @@
 </template>
 
 <script setup lang="ts">
-import type { Article } from '~/types/api'
-import { articleDate, articleImage } from '~/utils/blog'
+import type { Article, Tag } from '~/types/api'
+import { articleDate, articleImage, resolveArticleTags } from '~/utils/blog'
 
 const props = withDefaults(defineProps<{
   article: Article
   index?: number
-  tagNames?: Map<string, string>
+  tags?: Tag[]
 }>(), {
   index: 1,
 })
@@ -58,10 +58,7 @@ const props = withDefaults(defineProps<{
 const imageFailed = ref(false)
 const coverImage = computed(() => imageFailed.value ? '' : articleImage(props.article))
 const serial = computed(() => String(props.index).padStart(2, '0'))
-const visibleTags = computed(() => props.article.article_tags
-  .slice(0, 3)
-  .map((tag) => props.tagNames?.get(String(tag)) || (/^\d+$/.test(String(tag)) ? '' : String(tag)))
-  .filter(Boolean))
+const visibleTags = computed(() => resolveArticleTags(props.article.article_tags, props.tags, 3))
 
 function onImageError(event: Event) {
   const image = event.currentTarget as HTMLImageElement

@@ -9,7 +9,7 @@
         <div class="article-meta"><time :datetime="article.published_at || article.updated_at">{{ articleDate(article.published_at || article.updated_at) }}</time><span v-if="categoryLabel">{{ categoryLabel }}</span><span>{{ article.view_count }} 次阅读</span></div>
         <h1>{{ article.title }}</h1>
         <p>{{ article.article_description }}</p>
-        <div v-if="visibleTags.length" class="tag-row"><span v-for="tag in visibleTags" :key="tag" class="tag"># {{ tag }}</span></div>
+        <div v-if="visibleTags.length" class="tag-row"><template v-for="tag in visibleTags" :key="tag.id || tag.name"><NuxtLink v-if="tag.href" class="tag" :to="tag.href"># {{ tag.name }}</NuxtLink><span v-else class="tag"># {{ tag.name }}</span></template></div>
       </header>
       <button v-if="coverImage" class="post-cover-trigger" type="button" aria-label="查看文章封面大图" @click="openCoverImage"><img class="post-cover" :src="coverImage" :alt="article.title" width="1200" height="640" decoding="async" @error="onCoverError"></button>
       <div class="post-layout">
@@ -28,7 +28,7 @@
 
 <script setup lang="ts">
 import type { Category, Tag } from '~/types/api'
-import { articleDate, articleImage, markdownHeadings, normalizeTag } from '~/utils/blog'
+import { articleDate, articleImage, markdownHeadings, resolveArticleTags } from '~/utils/blog'
 
 const route = useRoute()
 const api = useBlogApi()
@@ -63,10 +63,10 @@ const config = useRuntimeConfig()
 const shareUrl = computed(() => `${String(config.public.siteUrl || '').replace(/\/$/, '')}/posts/${id}`)
 const coverImage = computed(() => coverImageFailed.value ? '' : articleImage(article.value))
 const headings = computed(() => markdownHeadings(article.value?.content || ''))
-const tagNames = computed(() => new Map(((data.value?.tags || []) as Tag[]).map((tag) => [String(tag.id), normalizeTag(tag).name])))
+const tags = computed(() => (data.value?.tags || []) as Tag[])
 const categoryNames = computed(() => new Map(((data.value?.categories || []) as Category[]).map((category) => [String(category.id), category.name || category.category_name || category.slug])))
 const categoryLabel = computed(() => categoryNames.value.get(String(article.value?.category)) || (/^\d+$/.test(String(article.value?.category || '')) ? '' : String(article.value?.category || '').trim()))
-const visibleTags = computed(() => (article.value?.article_tags || []).map((tag) => tagNames.value.get(String(tag)) || (/^\d+$/.test(String(tag)) ? '' : String(tag))).filter(Boolean))
+const visibleTags = computed(() => resolveArticleTags(article.value?.article_tags, tags.value))
 const allArticles = computed(() => data.value?.all || [])
 const index = computed(() => allArticles.value.findIndex((item) => item.id === id))
 const previous = computed(() => index.value > 0 ? allArticles.value[index.value - 1] : undefined)

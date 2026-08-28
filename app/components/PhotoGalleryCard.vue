@@ -28,7 +28,7 @@
         </time>
         <h2><NuxtLink :to="`/posts/${article.id}`">{{ article.title }}</NuxtLink></h2>
         <div v-if="visibleTags.length" class="photo-gallery-tags" aria-label="摄影标签">
-          <span v-for="tag in visibleTags" :key="tag"># {{ tag }}</span>
+          <template v-for="tag in visibleTags" :key="tag.id || tag.name"><NuxtLink v-if="tag.href" :to="tag.href"># {{ tag.name }}</NuxtLink><span v-else># {{ tag.name }}</span></template>
         </div>
       </div>
     </div>
@@ -36,12 +36,12 @@
 </template>
 
 <script setup lang="ts">
-import type { Article } from '~/types/api'
-import { articleDate, articleImage } from '~/utils/blog'
+import type { Article, Tag } from '~/types/api'
+import { articleDate, articleImage, resolveArticleTags } from '~/utils/blog'
 
 const props = defineProps<{
   article: Article
-  tagNames?: Map<string, string>
+  tags?: Tag[]
 }>()
 const emit = defineEmits<{
   'image-click': [payload: {
@@ -54,10 +54,7 @@ const emit = defineEmits<{
 
 const imageFailed = ref(false)
 const coverImage = computed(() => imageFailed.value ? '' : articleImage(props.article))
-const visibleTags = computed(() => props.article.article_tags
-  .slice(0, 3)
-  .map((tag) => props.tagNames?.get(String(tag)) || (/^\d+$/.test(String(tag)) ? '' : String(tag)))
-  .filter(Boolean))
+const visibleTags = computed(() => resolveArticleTags(props.article.article_tags, props.tags, 3))
 
 function openPreview() {
   if (!coverImage.value) return

@@ -11,7 +11,7 @@
     <p v-if="searched" class="result-summary">找到 {{ results.length }} 篇与“{{ submitted }}”有关的文章</p>
 
     <div v-if="pageResults.length" class="article-grid">
-      <ArticleCard v-for="article in pageResults" :key="article.id" :article="article" :tag-names="tagNames" />
+      <ArticleCard v-for="article in pageResults" :key="article.id" :article="article" :tags="tags" />
     </div>
     <EmptyState v-else :title="searched ? '没有找到相关文章' : '从一个词开始'" :message="searched ? '试试更短的关键词，或者换个表达。' : '搜索文章标题、摘要和正文内容。'" />
 
@@ -32,7 +32,6 @@
 
 <script setup lang="ts">
 import type { Tag } from '~/types/api'
-import { normalizeTag } from '~/utils/blog'
 
 const pageSize = 12
 const route = useRoute()
@@ -62,7 +61,7 @@ const totalPages = computed(() => Math.ceil(results.value.length / pageSize))
 const requestedPage = computed(() => Math.max(1, Number(route.query.page) || 1))
 const page = computed(() => Math.min(requestedPage.value, Math.max(1, totalPages.value)))
 const pageResults = computed(() => results.value.slice((page.value - 1) * pageSize, page.value * pageSize))
-const tagNames = computed(() => new Map(((data.value?.tags || []) as Tag[]).map((tag) => [String(tag.id), normalizeTag(tag).name])))
+const tags = computed(() => (data.value?.tags || []) as Tag[])
 
 const pageNumbers = computed<Array<number | '…'>>(() => {
   const total = totalPages.value

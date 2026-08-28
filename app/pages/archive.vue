@@ -32,14 +32,14 @@
             <div v-for="month in year.months" :key="month.month" class="archive-month">
               <h3>{{ month.month }}</h3>
               <div class="archive-items">
-                <NuxtLink v-for="article in month.items" :key="article.id" :to="`/posts/${article.id}`">
+                <div v-for="article in month.items" :key="article.id" class="archive-item">
                   <time :datetime="article.published_at || article.updated_at">{{ articleDate(article.published_at || article.updated_at) }}</time>
-                  <span>{{ article.title }}</span>
+                  <NuxtLink class="archive-item-title" :to="`/posts/${article.id}`">{{ article.title }}</NuxtLink>
                   <small>{{ categoryName(article.category) }}</small>
                   <span v-if="visibleTags(article).length" class="archive-item-tags" aria-label="文章标签">
-                    <span v-for="tag in visibleTags(article)" :key="tag" class="tag"># {{ tag }}</span>
+                    <template v-for="tag in visibleTags(article)" :key="tag.id || tag.name"><NuxtLink v-if="tag.href" class="tag" :to="tag.href"># {{ tag.name }}</NuxtLink><span v-else class="tag"># {{ tag.name }}</span></template>
                   </span>
-                </NuxtLink>
+                </div>
               </div>
             </div>
           </div>
@@ -51,7 +51,7 @@
   </div>
 </template>
 <script setup lang="ts">
-import { articleDate, categoryName, groupArchive, normalizeTag } from '~/utils/blog'
+import { articleDate, categoryName, groupArchive, resolveArticleTags } from '~/utils/blog'
 import { timeCapsuleNotes } from '~/data/time-capsules'
 import type { Article, Tag } from '~/types/api'
 const api = useBlogApi()
@@ -63,7 +63,7 @@ const { data } = await useAsyncData('archive', async () => {
   }
 }, { default: () => ({ articles: [], tags: [] }) })
 const articles = computed(() => (data.value?.articles || []) as Article[])
-const tagNames = computed(() => new Map(((data.value?.tags || []) as Tag[]).map((tag) => [String(tag.id), normalizeTag(tag).name])))
+const tags = computed(() => (data.value?.tags || []) as Tag[])
 const archive = computed(() => groupArchive(articles.value))
 const visibleYearCount = ref(3)
 const visibleArchive = computed(() => archive.value.slice(0, visibleYearCount.value))
@@ -75,10 +75,7 @@ const capsuleOpen = ref(false)
 const capsuleCard = ref<HTMLElement>()
 const yearInput = ref<HTMLInputElement>()
 function visibleTags(article: Article) {
-  return (article.article_tags || [])
-    .map((tag) => tagNames.value.get(String(tag)) || (/^\d+$/.test(String(tag)) ? '' : String(tag)))
-    .filter(Boolean)
-    .slice(0, 3)
+  return resolveArticleTags(article.article_tags, tags.value, 3)
 }
 const capsule = computed(() => {
   const year = yearQuery.value

@@ -42,7 +42,7 @@
                   <h3><NuxtLink :to="articlePath(article)">{{ article.title }}</NuxtLink></h3>
                   <p v-if="article.article_description">{{ article.article_description }}</p>
                   <div class="article-meta"><time :datetime="article.published_at || article.updated_at">{{ articleDate(article.published_at || article.updated_at) }}</time><span v-if="categoryName(article.category)">{{ categoryName(article.category) }}</span></div>
-                  <div class="journal-tags"><span v-for="tag in articleTags(article)" :key="tag">{{ tag }}</span></div>
+                  <div class="journal-tags"><template v-for="tag in articleTags(article)" :key="tag.id || tag.name"><NuxtLink v-if="tag.href" :to="tag.href"># {{ tag.name }}</NuxtLink><span v-else># {{ tag.name }}</span></template></div>
                 </div>
               </article>
             </div>
@@ -87,7 +87,8 @@
 </template>
 
 <script setup lang="ts">
-import { articleDate, articleImage as resolveArticleImage, normalizeTag } from '~/utils/blog'
+import type { Tag } from '~/types/api'
+import { articleDate, articleImage as resolveArticleImage, resolveArticleTags } from '~/utils/blog'
 
 const api = useBlogApi()
 const { data, error } = await useAsyncData('home', async () => {
@@ -126,7 +127,6 @@ const categories = computed(() => {
     icon: String(item.icon || '').trim(),
   })).filter((item: any) => item.name)
 })
-const tagNames = computed(() => new Map(tags.value.map((tag) => [String(tag.id), normalizeTag(tag).name])))
 const showBackToTop = ref(false)
 const heroImage = '/images/ui/hero-desk.webp'
 const hasHeroCopy = computed(() => [
@@ -169,7 +169,7 @@ function projectStatus(project: any) { return String(project?.projectStatus || p
 function articlePath(article: any) { return article?.id ? `/posts/${article.id}` : '/articles' }
 function articleImage(article: any) { return failedArticleImages.value[String(article?.id)] ? '' : resolveArticleImage(article) }
 function onArticleImageError(event: Event, article: any) { const image = event.currentTarget as HTMLImageElement; image.onerror = null; failedArticleImages.value = { ...failedArticleImages.value, [String(article?.id)]: true } }
-function articleTags(article: any) { return (article?.article_tags || []).map((tag: string) => tagNames.value.get(String(tag)) || (/^\d+$/.test(String(tag)) ? '' : String(tag))).filter(Boolean).slice(0, 3) }
+function articleTags(article: any) { return resolveArticleTags(article?.article_tags, tags.value as Tag[], 3) }
 function categoryCount(category: string) { return articles.value.filter((article) => categoryName(article.category) === categoryName(category)).length }
 function backToTop() { window.scrollTo({ top: 0, behavior: 'smooth' }) }
 

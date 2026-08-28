@@ -71,7 +71,7 @@
       </button>
 
       <div v-if="visibleTags.length" class="life-moment-tags" aria-label="文章标签">
-        <span v-for="tag in visibleTags" :key="tag" class="tag"># {{ tag }}</span>
+        <template v-for="tag in visibleTags" :key="tag.id || tag.name"><NuxtLink v-if="tag.href" class="tag" :to="tag.href"># {{ tag.name }}</NuxtLink><span v-else class="tag"># {{ tag.name }}</span></template>
       </div>
 
       <footer class="life-moment-footer">
@@ -84,12 +84,12 @@
 </template>
 
 <script setup lang="ts">
-import type { Article } from '~/types/api'
-import { articleDate, articleImage, dedupeGalleryImages } from '~/utils/blog'
+import type { Article, Tag } from '~/types/api'
+import { articleDate, articleImage, dedupeGalleryImages, resolveArticleTags } from '~/utils/blog'
 
 const props = defineProps<{
   article: Article
-  tagNames?: Map<string, string>
+  tags?: Tag[]
   authorName?: string
   authorImage?: string
 }>()
@@ -114,10 +114,7 @@ const galleryImages = computed(() => {
   const images = configuredImages.length ? configuredImages : [articleImage(props.article)]
   return dedupeGalleryImages(images).filter((image) => !failedImages.value[image]).slice(0, 9)
 })
-const visibleTags = computed(() => props.article.article_tags
-  .slice(0, 3)
-  .map((tag) => props.tagNames?.get(String(tag)) || (/^\d+$/.test(String(tag)) ? '' : String(tag)))
-  .filter(Boolean))
+const visibleTags = computed(() => resolveArticleTags(props.article.article_tags, props.tags, 3))
 
 function onImageError(event: Event, image: string) {
   const target = event.currentTarget as HTMLImageElement
