@@ -110,10 +110,11 @@
 
     <ImageLightbox
       :open="Boolean(lightboxImage)"
-      :src="lightboxImage?.src || ''"
-      :alt="lightboxImage?.alt || ''"
-      :dialog-label="lightboxImage?.dialogLabel || '查看大图'"
+      :images="lightboxImages"
+      :index="lightboxIndex"
+      :dialog-label="lightboxDialogLabel"
       @close="closeLightbox"
+      @change="changeLightbox"
     />
   </div>
 </template>
@@ -175,12 +176,22 @@ const categoryNames = computed(
 const failedImages = ref<Record<string, boolean>>({});
 const authorName = computed(() => String(settings.value.blog_name || '').trim());
 const authorImage = computed(() => String(settings.value.blog_logo || '').trim());
-const lightboxImage = ref<{ src: string; alt: string; dialogLabel: string } | null>(null);
 const isPet = computed(() => category.slug === "pets");
 const isPhoto = computed(() => category.slug === "photo");
 const isDaily = computed(() => category.slug === "daily");
 const isLearning = computed(() => category.slug === "learning");
 const isCollection = computed(() => isPet.value || isPhoto.value || isDaily.value);
+type LightboxImage = { src: string; alt: string };
+type LightboxPayload = {
+  image: LightboxImage;
+  images: LightboxImage[];
+  index: number;
+  dialogLabel: string;
+};
+const lightboxImages = ref<LightboxImage[]>([]);
+const lightboxIndex = ref(0);
+const lightboxImage = computed(() => lightboxImages.value[lightboxIndex.value]);
+const lightboxDialogLabel = ref("查看大图");
 const intro = computed(() =>
   isPet.value
     ? "把每一次撒娇、奔跑和回头，都收进一册柔软的生活相册。"
@@ -229,11 +240,17 @@ function onPhotoError(event: Event, article: Article) {
   image.onerror = null;
   failedImages.value = { ...failedImages.value, [String(article.id)]: true };
 }
-function openLightbox(image: { src: string; alt: string; dialogLabel: string }) {
-  lightboxImage.value = image;
+function openLightbox(payload: LightboxPayload) {
+  lightboxImages.value = payload.images;
+  lightboxIndex.value = payload.index;
+  lightboxDialogLabel.value = payload.dialogLabel;
+}
+function changeLightbox(index: number) {
+  if (index >= 0 && index < lightboxImages.value.length) lightboxIndex.value = index;
 }
 function closeLightbox() {
-  lightboxImage.value = null;
+  lightboxImages.value = [];
+  lightboxIndex.value = 0;
 }
 
 useBlogSeo({

@@ -94,7 +94,12 @@ const props = defineProps<{
   authorImage?: string
 }>()
 const emit = defineEmits<{
-  'image-click': [image: { src: string; alt: string; dialogLabel: string }]
+  'image-click': [payload: {
+    image: { src: string; alt: string }
+    images: Array<{ src: string; alt: string }>
+    index: number
+    dialogLabel: string
+  }]
 }>()
 
 const failedImages = ref<Record<string, boolean>>({})
@@ -120,9 +125,15 @@ function onImageError(event: Event, image: string) {
   failedImages.value = { ...failedImages.value, [image]: true }
 }
 function openPreview(image: string, index: number) {
-  if (image) emit('image-click', {
-    src: image,
-    alt: `${props.article.title} 第${index + 1}张照片`,
+  if (!image) return
+  const images = galleryImages.value.map((src, imageIndex) => ({
+    src,
+    alt: `${props.article.title} 第${imageIndex + 1}张照片`,
+  }))
+  emit('image-click', {
+    image: images[index],
+    images,
+    index,
     dialogLabel: '查看生活碎片大图',
   })
 }

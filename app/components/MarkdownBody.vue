@@ -3,10 +3,23 @@
 <script setup lang="ts">
 import { renderMarkdown } from '~/utils/blog'
 
+type ArticleImage = { src: string; alt: string }
+
 const props = defineProps<{ source?: string; enableImagePreview?: boolean }>()
-const emit = defineEmits<{ 'image-click': [image: { src: string; alt: string }] }>()
+const emit = defineEmits<{
+  'image-click': [payload: { image: ArticleImage; images: ArticleImage[]; index: number }]
+}>()
 const root = ref<HTMLElement>()
 const html = computed(() => renderMarkdown(props.source || ''))
+
+function getImages(): ArticleImage[] {
+  return Array.from(root.value?.querySelectorAll<HTMLImageElement>('img') || [])
+    .map((image) => ({
+      src: image.currentSrc || image.src,
+      alt: image.alt || '文章图片',
+    }))
+    .filter((image) => image.src)
+}
 
 async function handleClick(event: MouseEvent) {
   const target = (event.target as HTMLElement).closest<HTMLButtonElement>('[data-code-action]')
@@ -38,8 +51,18 @@ async function handleClick(event: MouseEvent) {
   if (!image || !root.value?.contains(image)) return
   event.preventDefault()
   const src = image.currentSrc || image.src
-  if (src) emit('image-click', { src, alt: image.alt || '文章图片' })
+  if (src) {
+    const images = getImages()
+    const index = images.findIndex((item) => item.src === src)
+    emit('image-click', {
+      image: { src, alt: image.alt || '文章图片' },
+      images,
+      index: index >= 0 ? index : 0,
+    })
+  }
 }
+
+defineExpose({ getImages })
 
 async function copyText(value: string) {
   if (navigator.clipboard?.writeText) {

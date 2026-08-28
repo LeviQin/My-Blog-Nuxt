@@ -44,7 +44,12 @@ const props = defineProps<{
   tagNames?: Map<string, string>
 }>()
 const emit = defineEmits<{
-  'image-click': [image: { src: string; alt: string; dialogLabel: string }]
+  'image-click': [payload: {
+    image: { src: string; alt: string }
+    images: Array<{ src: string; alt: string }>
+    index: number
+    dialogLabel: string
+  }]
 }>()
 
 const imageFailed = ref(false)
@@ -55,9 +60,12 @@ const visibleTags = computed(() => props.article.article_tags
   .filter(Boolean))
 
 function openPreview() {
-  if (coverImage.value) emit('image-click', {
-    src: coverImage.value,
-    alt: props.article.title,
+  if (!coverImage.value) return
+  const image = { src: coverImage.value, alt: props.article.title }
+  emit('image-click', {
+    image,
+    images: [image],
+    index: 0,
     dialogLabel: '查看摄影作品大图',
   })
 }
