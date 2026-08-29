@@ -13,6 +13,6 @@
 
 <script setup lang="ts">
 import type { Message } from '~/types/api'
-import { messageDate } from '~/utils/blog'
+import { messageDate } from '~/utils/article'
 defineProps<{ messages: Message[] }>()
 </script>

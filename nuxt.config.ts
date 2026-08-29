@@ -7,6 +7,14 @@ export default defineNuxtConfig({
 
   ssr: true,
 
+  typescript: {
+    tsConfig: {
+      compilerOptions: {
+        noUncheckedIndexedAccess: false,
+      },
+    },
+  },
+
   css: [
     '~/assets/css/main.css',
     '~/assets/css/journal-home.css',

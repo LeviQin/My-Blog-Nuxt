@@ -436,14 +436,14 @@
 }
 
 .lab-disclosure>summary::after {
-  content: '+';
-  color: var(--journal-olive);
-  font-size: 1rem;
-  font-weight: 400;
+  width: 20px;
+  height: 20px;
+  content: '';
+  background: url('/images/ui/icons/plus.svg') center / contain no-repeat;
 }
 
 .lab-disclosure[open]>summary::after {
-  content: '−';
+  background-image: url('/images/ui/icons/minus.svg');
 }
 
 .lab-disclosure>*:not(summary) {
@@ -1476,7 +1476,7 @@
 }
 
 .weather-scene.is-cloud {
-  background-image: url('/images/ui/lab/weather-scene-cloud.wep');
+  background-image: url('/images/ui/lab/weather-scene-cloud.webp');
 }
 
 .weather-scene.is-rain {
@@ -2023,5 +2023,75 @@
 
   .dev-workspace .lab-panel-heading h2 {
     font-size: 1.35rem;
+  }
+}
+
+/* Keep the Lab landing page focused while preserving every existing experiment. */
+.lab-view-tabs {
+  position: sticky;
+  z-index: 20;
+  top: 108px;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0 0 22px;
+  padding: 8px;
+  border: 1px solid var(--journal-line);
+  border-radius: 17px;
+  background: color-mix(in srgb, var(--journal-card) 94%, transparent);
+  box-shadow: 0 8px 20px rgba(89, 67, 39, .1);
+  backdrop-filter: blur(12px);
+}
+
+.lab-view-tabs button {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+  padding: 10px 12px;
+  border: 1px solid transparent;
+  border-radius: 12px;
+  color: var(--journal-muted);
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+}
+
+.lab-view-tabs button:hover {
+  color: var(--journal-brown);
+  background: color-mix(in srgb, var(--journal-olive-soft) 42%, transparent);
+}
+
+.lab-view-tabs button.active {
+  border-color: color-mix(in srgb, var(--journal-olive) 32%, transparent);
+  color: var(--journal-forest);
+  background: color-mix(in srgb, var(--journal-olive-soft) 68%, var(--journal-card));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .55);
+}
+
+.lab-view-tabs span {
+  overflow: hidden;
+  font-weight: 750;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.lab-view-tabs small {
+  overflow: hidden;
+  color: var(--journal-muted);
+  font-size: .68rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (max-width: 700px) {
+  .lab-view-tabs {
+    top: 76px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px;
+    padding: 7px;
+  }
+
+  .lab-view-tabs button {
+    padding: 9px 10px;
   }
 }

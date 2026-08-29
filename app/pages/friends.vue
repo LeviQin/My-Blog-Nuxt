@@ -78,7 +78,7 @@ const linkApplicationFormat = `名称：Levi’s space
 头像：https://i.ibb.co/ch2crJbv/qiya.png
 描述：写代码，也记录生活；分享折腾、灵感与日常。`
 const copyStatus = ref<'idle' | 'success' | 'error'>('idle')
-let copyResetTimer: ReturnType<typeof setTimeout> | undefined
+let copyResetTimer: number | undefined
 
 function linkHost(value: string) {
   try { return new URL(value).host.replace(/^www\./, '') } catch { return value }

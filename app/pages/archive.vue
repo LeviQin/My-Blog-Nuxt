@@ -7,28 +7,31 @@
       <div><input id="capsule-year" ref="yearInput" v-model="yearQuery" inputmode="numeric" maxlength="4" pattern="[0-9]{4}" placeholder="2025" aria-describedby="capsule-help"><button class="button primary" type="submit">打开</button></div>
       <small id="capsule-help">四位数字，例如 2025</small>
     </form>
-    <section v-if="capsuleOpen" ref="capsuleCard" class="time-capsule" tabindex="-1" aria-labelledby="capsule-title">
-      <div class="time-capsule-tape" aria-hidden="true"></div>
-      <template v-if="capsule">
-        <p class="card-kicker">a note from {{ capsule.year }}</p>
-        <h2 id="capsule-title">{{ capsule.year }} · 时间胶囊</h2>
-        <p class="capsule-note">{{ capsule.note || '那一年没有留下手写备注，但每一篇文章都还在这里。' }}</p>
-        <div class="capsule-stats"><span><strong>{{ capsule.items.length }}</strong> 篇文章</span><span><strong>{{ capsule.firstDate }}</strong> 最早发布</span><span><strong>{{ capsule.lastDate }}</strong> 最晚发布</span><span><strong>{{ capsule.busyMonth }}</strong> 发文最多</span></div>
-        <NuxtLink class="capsule-reread" :to="`/posts/${capsule.random.id}`"><img src="/images/ui/handmade/bookmark.webp" alt="" width="28" height="40">重读：{{ capsule.random.title }}</NuxtLink>
-      </template>
-      <p v-else class="capsule-empty" id="capsule-title">这个抽屉里暂时没有那一年的纸张。</p>
-    </section>
+    <Transition name="time-capsule" mode="out-in">
+      <section v-if="capsuleOpen" ref="capsuleCard" class="time-capsule" tabindex="-1" aria-labelledby="capsule-title">
+        <div class="time-capsule-tape" aria-hidden="true"></div>
+        <template v-if="capsule">
+          <p class="card-kicker">a note from {{ capsule.year }}</p>
+          <h2 id="capsule-title">{{ capsule.year }} · 时间胶囊</h2>
+          <p class="capsule-note">{{ capsule.note || '那一年没有留下手写备注，但每一篇文章都还在这里。' }}</p>
+          <div class="capsule-stats"><span><strong>{{ capsule.items.length }}</strong> 篇文章</span><span><strong>{{ capsule.firstDate }}</strong> 最早发布</span><span><strong>{{ capsule.lastDate }}</strong> 最晚发布</span><span><strong>{{ capsule.busyMonth }}</strong> 发文最多</span></div>
+          <NuxtLink class="capsule-reread" :to="`/posts/${capsule.random.id}`"><img src="/images/ui/handmade/bookmark.webp" alt="" width="28" height="40">重读：{{ capsule.random.title }}</NuxtLink>
+        </template>
+        <p v-else class="capsule-empty" id="capsule-title">这个抽屉里暂时没有那一年的纸张。</p>
+      </section>
+    </Transition>
     <template v-if="archive.length">
       <div class="archive-list">
-        <section v-for="year in visibleArchive" :id="`year-${year.year}`" :key="year.year" class="archive-year" :class="{ 'is-collapsed': !expandedYears.has(year.year) }">
+        <section v-for="(year, yearIndex) in visibleArchive" :id="`year-${year.year}`" :key="year.year" class="archive-year" :style="{ '--reveal-index': yearIndex }" :class="{ 'is-collapsed': !expandedYears.has(year.year) }">
           <h2>
             <button class="archive-year-toggle" type="button" :aria-expanded="expandedYears.has(year.year)" :aria-controls="`archive-year-content-${year.year}`" @click="toggleYear(year.year)">
               <span>{{ year.year }}</span>
               <small>{{ yearArticleCount(year) }} 篇文章</small>
-              <span class="archive-year-chevron" aria-hidden="true">⌄</span>
+              <span class="archive-year-chevron" aria-hidden="true"><UiIcon name="chevron-down" /></span>
             </button>
           </h2>
-          <div v-if="expandedYears.has(year.year)" :id="`archive-year-content-${year.year}`" class="archive-year-content">
+          <Transition name="archive-content">
+            <div v-if="expandedYears.has(year.year)" :id="`archive-year-content-${year.year}`" class="archive-year-content">
             <div v-for="month in year.months" :key="month.month" class="archive-month">
               <h3>{{ month.month }}</h3>
               <div class="archive-items">
@@ -43,6 +46,7 @@
               </div>
             </div>
           </div>
+          </Transition>
         </section>
       </div>
       <button v-if="hasEarlierYears" class="button ghost archive-load-more" type="button" @click="showEarlierYears">展开更早年份</button>
@@ -51,7 +55,7 @@
   </div>
 </template>
 <script setup lang="ts">
-import { articleDate, categoryName, groupArchive, resolveArticleTags } from '~/utils/blog'
+import { articleDate, categoryName, groupArchive, resolveArticleTags } from '~/utils/article'
 import { timeCapsuleNotes } from '~/data/time-capsules'
 import type { Article, Tag } from '~/types/api'
 const api = useBlogApi()
@@ -119,7 +123,7 @@ function revealHashYear() {
   let year = hash.slice(6)
   try { year = decodeURIComponent(year) } catch {}
   if (!revealYear(year)) return
-  nextTick(() => document.getElementById(`year-${year}`)?.scrollIntoView({ block: 'start' }))
+  nextTick(() => document.getElementById(`year-${year}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' }))
 }
 onMounted(() => {
   revealHashYear()

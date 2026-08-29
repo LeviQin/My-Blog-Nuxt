@@ -1,5 +1,6 @@
 export default defineNuxtPlugin((nuxtApp) => {
   const { track, flush } = useAnalytics()
+  const router = useRouter()
   let lastPath = ''
   let isFirstPageView = true
 
@@ -18,9 +19,9 @@ export default defineNuxtPlugin((nuxtApp) => {
   }
 
   nuxtApp.hook('app:mounted', () => {
-    trackPageView(nuxtApp.$router.currentRoute.value.path)
+    trackPageView(router.currentRoute.value.path)
   })
-  nuxtApp.$router.afterEach(to => trackPageView(to.path))
+  router.afterEach(to => trackPageView(to.path))
 
   const flushOnLeave = () => { void flush(true) }
   document.addEventListener('visibilitychange', () => {

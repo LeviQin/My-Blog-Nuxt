@@ -36,7 +36,7 @@
         </div>
 
         <NuxtLink class="learning-note-read" :to="`/posts/${article.id}`">
-          阅读全文 <span aria-hidden="true">→</span>
+          阅读全文 <UiIcon name="arrow-right" />
         </NuxtLink>
       </div>
     </div>
@@ -45,7 +45,7 @@
 
 <script setup lang="ts">
 import type { Article, Tag } from '~/types/api'
-import { articleDate, articleImage, resolveArticleTags } from '~/utils/blog'
+import { articleDate, articleImage, resolveArticleTags } from '~/utils/article'
 
 const props = withDefaults(defineProps<{
   article: Article

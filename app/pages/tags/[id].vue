@@ -28,7 +28,7 @@
 
 <script setup lang="ts">
 import type { Article, Tag } from '~/types/api'
-import { normalizeTag } from '~/utils/blog'
+import { normalizeTag } from '~/utils/article'
 
 const route = useRoute()
 const api = useBlogApi()

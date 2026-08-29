@@ -90,7 +90,7 @@
           <h2 v-if="featuredArticle"><NuxtLink :to="`/posts/${featuredArticle.id}`">{{ featuredArticle.title }}</NuxtLink></h2>
           <p v-if="featuredArticle?.article_description">{{ featuredArticle.article_description }}</p>
           <div v-if="featuredArticle && visibleTags(featuredArticle).length" class="development-tags"><template v-for="tag in visibleTags(featuredArticle)" :key="tag.id || tag.name"><NuxtLink v-if="tag.href" :to="tag.href"># {{ tag.name }}</NuxtLink><span v-else># {{ tag.name }}</span></template></div>
-          <NuxtLink v-if="featuredArticle" class="development-read" :to="`/posts/${featuredArticle.id}`">阅读精选文章 <span aria-hidden="true">→</span></NuxtLink>
+          <NuxtLink v-if="featuredArticle" class="development-read" :to="`/posts/${featuredArticle.id}`">阅读精选文章 <UiIcon name="arrow-right" /></NuxtLink>
         </div>
         <NuxtLink v-if="featuredArticle && photoImage(featuredArticle)" class="development-featured-cover" :to="`/posts/${featuredArticle.id}`" :aria-label="`打开《${featuredArticle.title}》`">
           <img :src="photoImage(featuredArticle)" :alt="featuredArticle.title" width="900" height="520" loading="lazy" decoding="async" @error="onPhotoError($event, featuredArticle)">
@@ -108,7 +108,7 @@
               <p v-if="article.article_description">{{ article.article_description }}</p>
               <div v-if="visibleTags(article).length" class="development-tags"><template v-for="tag in visibleTags(article)" :key="tag.id || tag.name"><NuxtLink v-if="tag.href" :to="tag.href"># {{ tag.name }}</NuxtLink><span v-else># {{ tag.name }}</span></template></div>
             </div>
-            <NuxtLink class="development-entry-read" :to="`/posts/${article.id}`" :aria-label="`阅读《${article.title}》`">→</NuxtLink>
+            <NuxtLink class="development-entry-read" :to="`/posts/${article.id}`" :aria-label="`阅读《${article.title}》`"><UiIcon name="arrow-right" /></NuxtLink>
           </article>
           <p v-if="!developmentArticles.length" class="development-list-empty">精选文章已经是这个分类的全部内容。</p>
         </section>
@@ -120,7 +120,7 @@
             <NuxtLink v-for="item in developmentTagItems" :key="item.name" class="development-topic-item" :to="item.href"><b># {{ item.name }}</b><small>{{ item.count }}</small></NuxtLink>
           </div>
           <p v-else class="development-index-empty">文章标签会显示在这里。</p>
-          <NuxtLink class="development-index-link" to="/archive">查看全部归档 <span aria-hidden="true">→</span></NuxtLink>
+          <NuxtLink class="development-index-link" to="/archive">查看全部归档 <UiIcon name="arrow-right" /></NuxtLink>
         </aside>
       </div>
     </div>
@@ -167,7 +167,7 @@
 
 <script setup lang="ts">
 import type { Article, Tag } from "~/types/api";
-import { articleDate, articleImage, resolveArticleTags } from "~/utils/blog";
+import { articleDate, articleImage, resolveArticleTags } from "~/utils/article";
 
 const route = useRoute();
 const api = useBlogApi();
@@ -308,7 +308,7 @@ function closeLightbox() {
 useBlogSeo({
   title: category.name,
   description: () =>
-    String(remoteCategory.description || `浏览 ${category.name} 分类下的文章。`).trim(),
+    String(remoteCategory?.description || `浏览 ${category.name} 分类下的文章。`).trim(),
   breadcrumbs: () => [
     { name: "首页", path: "/" },
     { name: "文章分类", path: "/archive" },

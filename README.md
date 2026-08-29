@@ -54,13 +54,13 @@ Levi Blog 目前有两个前端版本，共用 `levi-blog-service` 后端：
 ├── server/api/            # Nuxt 服务端 API 代理
 ├── nuxt.config.ts         # Nuxt 配置
 ├── package.json           # 项目脚本与依赖
-└── yarn.lock              # Yarn 依赖锁定文件
+└── package-lock.json      # npm 依赖锁定文件
 ```
 
 ## 环境要求
 
 - Node.js 20+
-- Yarn 1.x
+- npm 11.x
 - 已启动的 `levi-blog-service` 后端服务
 
 本项目默认连接本机 `http://127.0.0.1:3000` 的博客后端。后端项目需要单独部署和运行。
@@ -70,7 +70,7 @@ Levi Blog 目前有两个前端版本，共用 `levi-blog-service` 后端：
 ### 1. 安装依赖
 
 ```bash
-yarn install
+npm ci
 ```
 
 ### 2. 配置环境变量
@@ -91,7 +91,7 @@ NUXT_TRUSTED_PROXY_IPS=127.0.0.1,::1,172.24.0.1
 ### 3. 启动开发服务
 
 ```bash
-yarn dev
+npm run dev
 ```
 
 开发服务器默认运行在 `http://localhost:3006`。
@@ -101,13 +101,13 @@ yarn dev
 生成生产环境构建产物：
 
 ```bash
-yarn build
+npm run build
 ```
 
 本地预览生产构建：
 
 ```bash
-yarn preview
+npm run preview
 ```
 
 也可以直接运行 Nitro 服务：
@@ -122,11 +122,11 @@ node .output/server/index.mjs
 
 | 命令 | 说明 |
 | --- | --- |
-| `yarn install` | 安装项目依赖 |
-| `yarn dev` | 启动开发服务器，端口为 `3006` |
-| `yarn build` | 构建生产版本 |
-| `yarn preview` | 预览生产构建 |
-| `yarn generate` | 生成静态站点 |
+| `npm ci` | 根据锁文件安装项目依赖 |
+| `npm run dev` | 启动开发服务器，端口为 `3006` |
+| `npm run build` | 构建生产版本 |
+| `npm run preview` | 预览生产构建 |
+| `npm run generate` | 生成静态站点 |
 
 ## 后端说明
 

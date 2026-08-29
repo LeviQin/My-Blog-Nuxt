@@ -36,4 +36,4 @@ export interface Message extends Comment {
   email?: string; replied?: number | boolean; operating_system?: string; browser?: string;
 }
 export interface PaginatedMessages { items: Message[]; total: number; page: number; pageSize: number; totalPages: number }
-export interface BlogProject { id: number; name: string; link?: string; isApp?: boolean; category: string; description?: string; desc?: string; tags: string[]; isFeatured?: boolean; projectStatus?: string; project_status?: string; sort?: number; updated_at?: string }
+export interface BlogProject { id: number; name: string; link?: string; isApp?: boolean; category: string; description?: string; desc?: string; tags: string[]; isFeatured?: boolean | number; projectStatus?: string; project_status?: string; sort?: number; updated_at?: string }

@@ -10,5 +10,5 @@
 </template>
 
 <script setup lang="ts">
-const progress = useReadingProgress()
+const progress = useReadingProgress(true)
 </script>

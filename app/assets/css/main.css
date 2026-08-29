@@ -35,7 +35,7 @@
 }
 
 html {
-  scroll-behavior: smooth;
+  scroll-behavior: auto;
   background: var(--paper);
 }
 
@@ -73,6 +73,19 @@ textarea {
 button,
 a {
   -webkit-tap-highlight-color: transparent;
+}
+
+.ui-icon {
+  display: inline-block;
+  flex: 0 0 auto;
+  width: 1em;
+  height: 1em;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  vertical-align: -.14em;
 }
 
 button:focus-visible,
@@ -401,6 +414,18 @@ h3 {
 
 .page-section>.section-heading {
   margin-bottom: 14px;
+}
+
+.reveal-item {
+  opacity: 0;
+  transform: translateY(18px);
+  transition: opacity .55s ease, transform .55s cubic-bezier(.22, .8, .28, 1);
+  transition-delay: calc(min(var(--reveal-index, 0), 5) * 70ms);
+}
+
+.reveal-item.is-visible {
+  opacity: 1;
+  transform: none;
 }
 
 .page-lead {
@@ -1663,9 +1688,10 @@ h3 {
   position: absolute;
   right: -24px;
   bottom: -40px;
-  color: var(--sage);
-  content: "✿";
-  font-size: 8rem;
+  width: 128px;
+  height: 128px;
+  content: "";
+  background: url('/images/ui/icons/flower.svg') center / contain no-repeat;
   opacity: .22;
   transform: rotate(20deg);
 }
@@ -1837,6 +1863,27 @@ h3 {
   transform: rotate(0);
 }
 
+.archive-content-enter-active,
+.archive-content-leave-active {
+  overflow: hidden;
+  transform-origin: top center;
+  transition: opacity .28s ease, transform .34s cubic-bezier(.22, .8, .28, 1), clip-path .34s ease;
+}
+
+.archive-content-enter-from,
+.archive-content-leave-to {
+  opacity: 0;
+  transform: translateY(-8px);
+  clip-path: inset(0 0 100% 0);
+}
+
+.archive-content-enter-to,
+.archive-content-leave-from {
+  opacity: 1;
+  transform: translateY(0);
+  clip-path: inset(0 0 0 0);
+}
+
 .archive-year-toggle:hover small,
 .archive-year-toggle:hover .archive-year-chevron {
   color: var(--forest);
@@ -1851,7 +1898,7 @@ h3 {
 .archive-year>h2::before {
   position: absolute;
   top: 14px;
-  left: -37px;
+  left: -41px;
   width: 13px;
   height: 13px;
   border: 4px solid var(--paper);
@@ -1942,6 +1989,30 @@ h3 {
   max-width: 850px;
   margin: 0 auto 35px;
   text-align: center;
+}
+
+.post-reveal {
+  animation: post-reveal-in .58s cubic-bezier(.22, .8, .28, 1) both;
+}
+
+.post-reveal--cover {
+  animation-delay: .08s;
+}
+
+.post-reveal--layout {
+  animation-delay: .16s;
+}
+
+@keyframes post-reveal-in {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .post-header .article-meta {
@@ -2374,6 +2445,11 @@ h3 {
   font-size: .78rem;
 }
 
+.markdown-admonition-title svg {
+  width: 14px;
+  height: 14px;
+}
+
 .markdown-admonition-content {
   padding: 0 15px 13px;
   color: var(--ink);
@@ -2424,10 +2500,11 @@ h3 {
 
 .markdown-body h2::before {
   display: inline-block;
+  width: .9em;
+  height: .9em;
   margin-right: 8px;
-  color: var(--apricot);
-  content: "✦";
-  font-size: .7em;
+  content: "";
+  background: url('/images/ui/icons/sparkle.svg') center / contain no-repeat;
   transform: rotate(-12deg);
 }
 
@@ -2825,6 +2902,17 @@ h3 {
   text-align: center;
 }
 
+.share-qr-enter-active,
+.share-qr-leave-active {
+  transition: opacity .24s ease, transform .3s cubic-bezier(.22, .8, .28, 1);
+}
+
+.share-qr-enter-from,
+.share-qr-leave-to {
+  opacity: 0;
+  transform: translateY(8px) scale(.97);
+}
+
 .article-share-qr img {
   display: block;
   width: 220px;
@@ -2856,6 +2944,13 @@ h3 {
 .like-button.liked {
   color: #fff;
   background: var(--apricot);
+  animation: like-pop .38s cubic-bezier(.22, .8, .28, 1);
+}
+
+@keyframes like-pop {
+  0% { transform: scale(1); }
+  45% { transform: scale(1.06) rotate(-1deg); }
+  100% { transform: scale(1); }
 }
 
 .reading-note {
@@ -2866,6 +2961,19 @@ h3 {
 .post-comments {
   max-width: 760px;
   margin: 90px auto 0;
+}
+
+.post-related {
+  width: min(1120px, 100%);
+  margin: 76px auto 0;
+}
+
+.post-related .section-heading {
+  margin-bottom: 20px;
+}
+
+.post-related-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
 .comment-thread {
@@ -3831,6 +3939,10 @@ h3 {
     grid-template-columns: 1fr;
   }
 
+  .post-related-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .toc-card {
     position: static;
     max-height: none;
@@ -4149,6 +4261,12 @@ h3 {
     align-items: flex-start;
     flex-direction: column;
     gap: 6px;
+  }
+}
+
+@media (max-width: 767px) {
+  .post-related-grid {
+    grid-template-columns: 1fr;
   }
 }
 
@@ -5721,6 +5839,12 @@ body::before {
     transition-duration: .01ms !important;
     animation-duration: .01ms !important;
   }
+
+  .reveal-item {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
 }
 
 /* Reference layout: a quiet three-column plant journal. */
@@ -5973,7 +6097,7 @@ body::before {
   grid-template-columns: 31px 1fr auto;
   align-items: center;
   min-height: 45px;
-  padding: 2px 1px;
+  padding: 2px 1px 2px 8px;
   border-radius: 8px;
   color: var(--ink);
   text-align: left;

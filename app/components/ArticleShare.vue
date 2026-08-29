@@ -12,7 +12,7 @@
             <span class="article-share-kicker">SHARE THIS NOTE</span>
             <strong>把这篇文章带走</strong>
           </div>
-          <button class="article-share-close" type="button" aria-label="关闭分享菜单" @click="close">×</button>
+          <button class="article-share-close" type="button" aria-label="关闭分享菜单" @click="close"><UiIcon name="close" /></button>
         </div>
 
         <div class="article-share-options">
@@ -30,10 +30,12 @@
           </button>
         </div>
 
-        <div v-if="qrDataUrl" class="article-share-qr">
-          <img :src="qrDataUrl" alt="当前文章二维码" width="220" height="220" decoding="async">
-          <span>用手机扫一扫，打开这篇文章</span>
-        </div>
+        <Transition name="share-qr">
+          <div v-if="qrDataUrl" class="article-share-qr">
+            <img :src="qrDataUrl" alt="当前文章二维码" width="220" height="220" decoding="async">
+            <span>用手机扫一扫，打开这篇文章</span>
+          </div>
+        </Transition>
         <p v-if="statusMessage" class="article-share-status" role="status" aria-live="polite">{{ statusMessage }}</p>
       </div>
     </Transition>
@@ -41,8 +43,6 @@
 </template>
 
 <script setup lang="ts">
-import * as QRCode from 'qrcode'
-
 const props = defineProps<{
   url: string
 }>()
@@ -51,7 +51,7 @@ const open = ref(false)
 const qrDataUrl = ref('')
 const statusMessage = ref('')
 const root = ref<HTMLElement>()
-let statusTimer: ReturnType<typeof window.setTimeout> | undefined
+let statusTimer: number | undefined
 
 function toggleOpen() {
   open.value = !open.value
@@ -117,7 +117,8 @@ async function copyCurrentUrl() {
 async function showQrCode() {
   if (!import.meta.client) return
   try {
-    qrDataUrl.value = await QRCode.toDataURL(props.url, {
+    const { toDataURL } = await import('qrcode')
+    qrDataUrl.value = await toDataURL(props.url, {
       errorCorrectionLevel: 'M',
       margin: 2,
       width: 220,

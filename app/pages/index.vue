@@ -10,7 +10,7 @@
                 <h1 v-if="heroTitle || heroTitleEmphasis" id="home-hero-title"><span v-if="heroTitle">{{ heroTitle }}</span><br v-if="heroTitle && heroTitleEmphasis"><em v-if="heroTitleEmphasis">{{ heroTitleEmphasis }}</em></h1>
                 <p v-if="heroDescription || heroDescriptionExtra" class="hero-description"><span v-if="heroDescription">{{ heroDescription }}</span><br v-if="heroDescription && heroDescriptionExtra"><span v-if="heroDescriptionExtra">{{ heroDescriptionExtra }}</span></p>
                 <div v-if="heroPrimaryText || heroSecondaryText" class="hero-actions">
-                  <NuxtLink v-if="heroPrimaryText" class="journal-button journal-button-primary" :to="articlePath(articleItems[0])"><img class="button-icon" src="/images/ui/handmade/leaf.webp" alt="" width="18" height="18" aria-hidden="true"> {{ heroPrimaryText }}</NuxtLink>
+                  <NuxtLink v-if="heroPrimaryText" class="journal-button journal-button-primary" :to="articlePath(articleItems[0])" no-prefetch><img class="button-icon" src="/images/ui/handmade/leaf.webp" alt="" width="18" height="18" aria-hidden="true"> {{ heroPrimaryText }}</NuxtLink>
                   <NuxtLink v-if="heroSecondaryText" class="journal-button journal-button-secondary" to="/archive"><img class="button-icon" src="/images/ui/handmade/book.webp" alt="" width="18" height="18" aria-hidden="true"> {{ heroSecondaryText }}</NuxtLink>
                 </div>
               </div>
@@ -27,19 +27,19 @@
           <section class="latest-section" aria-labelledby="latest-title">
             <div class="journal-section-heading">
               <h2 id="latest-title">最新文章</h2>
-              <NuxtLink to="/articles">查看全部文章 <span aria-hidden="true">→</span></NuxtLink>
+              <NuxtLink to="/articles">查看全部文章 <UiIcon name="arrow-right" /></NuxtLink>
             </div>
             <div v-if="articleItems.length" class="journal-article-grid">
               <article v-for="(article, index) in articleItems" :key="article.id || article.title" class="journal-article-card">
                 <div class="journal-cover-wrap">
-                  <NuxtLink :to="articlePath(article)" class="journal-cover-link">
+                  <NuxtLink :to="articlePath(article)" class="journal-cover-link" no-prefetch>
                     <img v-if="articleImage(article)" class="journal-cover" :src="articleImage(article)" :alt="article.title" width="720" height="420" loading="lazy" decoding="async" @error="onArticleImageError($event, article)">
                     <span v-else class="journal-cover-placeholder" aria-label="未配置文章封面" />
                   </NuxtLink>
                   <span v-if="categoryName(article.category)" class="journal-category">{{ categoryName(article.category) }}</span>
                 </div>
                 <div class="journal-article-body">
-                  <h3><NuxtLink :to="articlePath(article)">{{ article.title }}</NuxtLink></h3>
+                  <h3><NuxtLink :to="articlePath(article)" no-prefetch>{{ article.title }}</NuxtLink></h3>
                   <p v-if="article.article_description">{{ article.article_description }}</p>
                   <div class="article-meta"><span v-if="isPinnedArticle(article)" class="article-pin" aria-label="置顶文章">置顶</span><time :datetime="article.published_at || article.updated_at">{{ articleDate(article.published_at || article.updated_at) }}</time><span v-if="categoryName(article.category)">{{ categoryName(article.category) }}</span></div>
                   <div class="journal-tags"><template v-for="tag in articleTags(article)" :key="tag.id || tag.name"><NuxtLink v-if="tag.href" :to="tag.href"># {{ tag.name }}</NuxtLink><span v-else># {{ tag.name }}</span></template></div>
@@ -63,50 +63,51 @@
           </section>
 
           <section v-if="projectItems.length" class="journal-card project-card">
-            <div class="card-title-row"><h2>最近项目</h2><NuxtLink to="/portfolio" aria-label="查看全部项目">→</NuxtLink></div>
+            <div class="card-title-row"><h2>最近项目</h2><NuxtLink to="/portfolio" aria-label="查看全部项目"><UiIcon name="arrow-right" /></NuxtLink></div>
             <NuxtLink v-for="project in projectItems.slice(0, 4)" :key="project.id || project.name" class="project-item" :to="project.link ? undefined : '/portfolio'" :href="project.link || undefined" :target="project.link ? '_blank' : undefined" :rel="project.link ? 'noreferrer' : undefined">
               <span class="project-copy"><strong>{{ project.name }}</strong><small v-if="project.category">{{ project.category }}</small></span><span v-if="projectStatus(project)" class="project-status">{{ projectStatus(project) }}</span>
             </NuxtLink>
           </section>
 
-          <NuxtLink v-if="showWidgetModule" class="journal-card lab-entry-card" to="/lab">
+          <NuxtLink v-if="showWidgetModule" class="journal-card lab-entry-card" to="/lab" no-prefetch>
             <img src="/images/ui/handmade/icon-lab-flask-real.svg" alt="" width="46" height="52" aria-hidden="true">
             <span><small>LEVI LAB</small><strong>手账实验室</strong><em>调一张纸，写一段 Markdown。</em></span>
-            <b aria-hidden="true">→</b>
+            <b aria-hidden="true"><UiIcon name="arrow-right" /></b>
           </NuxtLink>
 
           <section v-if="showCategoryModule && categories.length" class="journal-card category-card">
-            <div class="card-title-row"><h2>文章分类</h2><NuxtLink to="/archive" aria-label="查看文章归档">→</NuxtLink></div>
+            <div class="card-title-row"><h2>文章分类</h2><NuxtLink to="/archive" aria-label="查看文章归档"><UiIcon name="arrow-right" /></NuxtLink></div>
             <NuxtLink v-for="category in categories" :key="category.slug" class="category-item" :to="`/category/${category.slug}`"><img v-if="category.icon" class="category-icon-img" :src="category.icon" alt="" width="19" height="19" aria-hidden="true"><span>{{ category.name }}</span><small>{{ categoryCount(category.value) }}</small></NuxtLink>
           </section>
         </aside>
       </div>
     </div>
-    <button v-show="showBackToTop" class="back-to-top" type="button" aria-label="返回顶部" @click="backToTop"><img src="/images/ui/handmade/arrow-up.svg" alt="" width="30" height="30" aria-hidden="true"></button>
+    <Transition name="back-to-top">
+      <button v-if="showBackToTop" class="back-to-top" type="button" aria-label="返回顶部" @click="backToTop"><img src="/images/ui/handmade/arrow-up.svg" alt="" width="30" height="30" aria-hidden="true"></button>
+    </Transition>
   </div>
 </template>
 
 <script setup lang="ts">
 import type { Tag } from '~/types/api'
-import { articleDate, articleImage as resolveArticleImage, isPinnedArticle, resolveArticleTags } from '~/utils/blog'
+import { articleDate, articleImage as resolveArticleImage, isPinnedArticle, resolveArticleTags } from '~/utils/article'
 
 const api = useBlogApi()
+const { settings } = useSiteSettings()
 const { data, error } = await useAsyncData('home', async () => {
-  const results = await Promise.allSettled([api.articles(), api.statistics(), api.tags(), api.settings(), api.projects(), api.categories()])
+  const results = await Promise.allSettled([api.articlesPage({ page: '1', pageSize: '3' }), api.statistics(), api.tags(), api.projects(), api.categories()])
   return {
-    articles: results[0].status === 'fulfilled' ? results[0].value : [],
+    articles: results[0].status === 'fulfilled' ? results[0].value.items : [],
     stats: results[1].status === 'fulfilled' ? results[1].value : {},
     tags: results[2].status === 'fulfilled' ? results[2].value : [],
-    settings: results[3].status === 'fulfilled' ? results[3].value : {},
-    projects: results[4].status === 'fulfilled' ? results[4].value : [],
-    categories: results[5].status === 'fulfilled' ? results[5].value : [],
+    projects: results[3].status === 'fulfilled' ? results[3].value : [],
+    categories: results[4].status === 'fulfilled' ? results[4].value : [],
   }
-}, { default: () => ({ articles: [], stats: {}, tags: [], settings: {}, projects: [], categories: [] }) })
+}, { default: () => ({ articles: [], stats: {}, tags: [], projects: [], categories: [] }) })
 
 const collageImages = ['/images/life-mountain.webp', '/images/life-cat.webp', '/images/life-coast.webp']
 const articles = computed<any[]>(() => data.value?.articles || [])
 const tags = computed<any[]>(() => data.value?.tags || [])
-const settings = computed<any>(() => Array.isArray(data.value?.settings) ? data.value?.settings[0] || {} : data.value?.settings || {})
 const showCategoryModule = computed(() => isSiteModuleEnabled(settings.value, 'show_category_module'))
 const showWidgetModule = computed(() => isSiteModuleEnabled(settings.value, 'show_widget_module'))
 const showAboutModule = computed(() => isSiteModuleEnabled(settings.value, 'show_about_module'))
@@ -125,6 +126,7 @@ const categories = computed(() => {
     slug: item.slug || `category-${item.id}`,
     name: String(item.name || item.category_name || item.slug || '').trim(),
     icon: String(item.icon || '').trim(),
+    count: Number(item.article_count || 0),
   })).filter((item: any) => item.name)
 })
 const showBackToTop = ref(false)
@@ -170,12 +172,17 @@ function articlePath(article: any) { return article?.id ? `/posts/${article.id}`
 function articleImage(article: any) { return failedArticleImages.value[String(article?.id)] ? '' : resolveArticleImage(article) }
 function onArticleImageError(event: Event, article: any) { const image = event.currentTarget as HTMLImageElement; image.onerror = null; failedArticleImages.value = { ...failedArticleImages.value, [String(article?.id)]: true } }
 function articleTags(article: any) { return resolveArticleTags(article?.article_tags, tags.value as Tag[], 3) }
-function categoryCount(category: string) { return articles.value.filter((article) => categoryName(article.category) === categoryName(category)).length }
+function categoryCount(category: string) { return categories.value.find((item) => item.value === category)?.count || 0 }
 function backToTop() { window.scrollTo({ top: 0, behavior: 'smooth' }) }
+function updateBackToTop() { showBackToTop.value = window.scrollY > 420 }
 
 const siteName = computed(() => String(settings.value.blog_name || '').trim())
 const siteDescription = computed(() => String(settings.value.blog_description || '').trim())
 useBlogSeo({ title: siteName, description: siteDescription, image: () => settings.value.blog_logo })
 if (error.value) console.warn('home data unavailable', error.value)
-onMounted(() => window.addEventListener('scroll', () => { showBackToTop.value = window.scrollY > 420 }, { passive: true }))
+onMounted(() => {
+  updateBackToTop()
+  window.addEventListener('scroll', updateBackToTop, { passive: true })
+})
+onBeforeUnmount(() => window.removeEventListener('scroll', updateBackToTop))
 </script>

@@ -1,13 +1,14 @@
 import { getCurrentInstance, onMounted } from 'vue'
 
 export interface EasterEggSessionState {
+  catShown: boolean
   fireflyShownCount: number
   coffeeClicks: number
   nightNoteDismissed: boolean
 }
 
 const SESSION_KEY = 'levi-blog:easter-session:v1'
-const defaultState = (): EasterEggSessionState => ({ fireflyShownCount: 0, coffeeClicks: 0, nightNoteDismissed: false })
+const defaultState = (): EasterEggSessionState => ({ catShown: false, fireflyShownCount: 0, coffeeClicks: 0, nightNoteDismissed: false })
 
 export function useEasterEggSession() {
   const state = useState<EasterEggSessionState>('easter-egg-session', defaultState)

@@ -68,7 +68,7 @@ function ipv4ToNumber(value: string) {
 function matchesTrustedProxy(address: string, entry: string) {
   if (address === entry) return true
   const [network, prefixText] = entry.split('/')
-  if (prefixText === undefined) return false
+  if (!network || prefixText === undefined) return false
   const prefix = Number(prefixText)
   const addressNumber = ipv4ToNumber(address)
   const networkNumber = ipv4ToNumber(network)

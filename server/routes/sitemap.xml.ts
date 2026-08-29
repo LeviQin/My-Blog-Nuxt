@@ -26,17 +26,7 @@ export default defineEventHandler(async (event) => {
   add('/')
   add('/articles')
   add('/archive')
-  add('/about')
-  add('/links')
   add('/portfolio')
-  add('/lab')
-  add('/lab/image')
-  add('/lab/cover')
-  add('/lab/color')
-  add('/lab/weather')
-  add('/lab/ip')
-  add('/lab/qr')
-  add('/lab/dev')
 
   async function fetchApi<T>(path: string) {
     try {
@@ -47,11 +37,33 @@ export default defineEventHandler(async (event) => {
     }
   }
 
-  const [articleData, categoryData, tagData] = await Promise.all([
+  const [articleData, categoryData, tagData, settingData] = await Promise.all([
     fetchApi<any[]>('articles/article'),
     fetchApi<any[]>('articles/categories'),
     fetchApi<any[]>('articles/tags'),
+    fetchApi<Record<string, unknown> | Array<Record<string, unknown>>>('blog-setting/settings?key=levi-blog'),
   ])
+  const settings = Array.isArray(settingData) ? settingData[0] || {} : settingData || {}
+  const moduleEnabled = (key: string) => {
+    const value = settings[key]
+    if (value === undefined || value === null || value === '') return true
+    return value === true || value === 1 || value === '1'
+  }
+
+  if (moduleEnabled('show_about_module')) add('/about')
+  if (moduleEnabled('show_friend_link_module')) add('/friends')
+  if (moduleEnabled('show_sites_module')) add('/sites')
+  if (moduleEnabled('show_guestbook_module')) add('/guestbook')
+  if (moduleEnabled('show_widget_module')) {
+    add('/lab')
+    add('/lab/image')
+    add('/lab/cover')
+    add('/lab/color')
+    add('/lab/weather')
+    add('/lab/ip')
+    add('/lab/qr')
+    add('/lab/dev')
+  }
   const articles = (Array.isArray(articleData) ? articleData : Array.isArray((articleData as any)?.items) ? (articleData as any).items : [])
     .filter((article: any) => article?.is_show === undefined || article.is_show === true || Number(article.is_show) === 1)
   const categories = (Array.isArray(categoryData) ? categoryData : [])
@@ -59,9 +71,11 @@ export default defineEventHandler(async (event) => {
   const tags = (Array.isArray(tagData) ? tagData : [])
     .filter((tag: any) => (tag?.status === undefined || tag.status === true || Number(tag.status) === 1) && Number(tag?.associated_article_count || tag?.article_count || tag?.count || 0) > 0)
 
-  for (const category of categories) {
-    const slug = String(category?.slug || '').trim()
-    if (slug) add(`/category/${encodeURIComponent(slug)}`)
+  if (moduleEnabled('show_category_module')) {
+    for (const category of categories) {
+      const slug = String(category?.slug || '').trim()
+      if (slug) add(`/category/${encodeURIComponent(slug)}`)
+    }
   }
   for (const tag of tags) {
     const id = Number(tag?.id)

@@ -12,7 +12,7 @@ RUN npm ci --foreground-scripts
 
 ENV NODE_ENV=production
 
-RUN npm run build
+RUN npm run typecheck && npm run build
 
 
 FROM node:22.18.0-bookworm-slim AS runner

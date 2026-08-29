@@ -75,8 +75,8 @@
       </div>
 
       <footer class="life-moment-footer">
-        <NuxtLink class="life-moment-read" :to="`/posts/${article.id}`">查看全文 <span aria-hidden="true">→</span></NuxtLink>
-        <span v-if="article.likes > 0" class="life-moment-likes" aria-label="喜欢数">♡ {{ article.likes }}</span>
+        <NuxtLink class="life-moment-read" :to="`/posts/${article.id}`">查看全文 <UiIcon name="arrow-right" /></NuxtLink>
+        <span v-if="article.likes > 0" class="life-moment-likes" aria-label="喜欢数"><UiIcon name="heart" /> {{ article.likes }}</span>
       </footer>
     </div>
 
@@ -85,7 +85,7 @@
 
 <script setup lang="ts">
 import type { Article, Tag } from '~/types/api'
-import { articleDate, articleImage, dedupeGalleryImages, resolveArticleTags } from '~/utils/blog'
+import { articleDate, articleImage, dedupeGalleryImages, resolveArticleTags } from '~/utils/article'
 
 const props = defineProps<{
   article: Article

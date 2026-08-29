@@ -20,7 +20,7 @@
 const { state, update } = useEasterEggSession()
 const maxSips = 5
 const isDrinking = ref(false)
-let drinkingTimer: ReturnType<typeof setTimeout> | null = null
+let drinkingTimer: number | null = null
 const isEmpty = computed(() => state.value.coffeeClicks >= maxSips)
 const remaining = computed(() => Math.max(0, maxSips - state.value.coffeeClicks))
 const secretText = computed(() => isEmpty.value ? '咖啡没了，灵感还在。' : '')

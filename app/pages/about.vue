@@ -20,16 +20,16 @@
         <article v-for="(project, index) in featuredProjects" :key="project.id" class="project-card project-card--archive about-project" :class="{ 'is-featured': project.isFeatured }">
           <div class="project-card-top"><span class="project-number">{{ projectNumber(index) }}</span><span class="project-category">{{ project.category }}</span><span class="project-featured">精选</span></div>
           <div class="project-card-content"><h3>{{ project.name }}</h3><p v-if="project.description || project.desc">{{ project.description || project.desc }}</p><div v-if="project.tags.length" class="project-tags"><span v-for="tag in project.tags.slice(0, 4)" :key="tag" class="tag">{{ tag }}</span></div></div>
-          <div class="project-card-footer"><span v-if="project.category">{{ project.category }}</span><a v-if="project.link" :href="project.link" target="_blank" rel="noreferrer">查看项目 <span aria-hidden="true">→</span></a></div>
+          <div class="project-card-footer"><span v-if="project.category">{{ project.category }}</span><a v-if="project.link" :href="project.link" target="_blank" rel="noreferrer">查看项目 <UiIcon name="arrow-right" /></a></div>
         </article>
       </div>
       <EmptyState v-else title="精选作品还在整理中" />
-      <NuxtLink class="button ghost about-more-projects" to="/portfolio">查看更多作品 →</NuxtLink>
+      <NuxtLink class="button ghost about-more-projects" to="/portfolio">查看更多作品 <UiIcon name="arrow-right" /></NuxtLink>
     </section>
 
     <section v-if="hasContactSection" class="about-contact paper-card" :class="{ 'has-background': settings.blog_connect_bg_img }" :style="backgroundStyle(settings.blog_connect_bg_img)">
       <div><p class="eyebrow">say hello</p><h2 v-if="settings.blog_connect_title">{{ settings.blog_connect_title }}</h2><div class="contact-list">
-        <a v-if="settings.blog_connect_email" :href="`mailto:${settings.blog_connect_email}`">邮箱：{{ settings.blog_connect_email }}</a><span v-if="settings.blog_connect_wx">微信：{{ settings.blog_connect_wx }}</span><span v-if="settings.blog_connect_qq">QQ：{{ settings.blog_connect_qq }}</span><a v-if="settings.blog_connect_github" :href="String(settings.blog_connect_github)" target="_blank" rel="noreferrer">GitHub →</a><NuxtLink v-if="!hasContact" to="/guestbook">通过联系表单联系我 →</NuxtLink>
+        <a v-if="settings.blog_connect_email" :href="`mailto:${settings.blog_connect_email}`">邮箱：{{ settings.blog_connect_email }}</a><span v-if="settings.blog_connect_wx">微信：{{ settings.blog_connect_wx }}</span><span v-if="settings.blog_connect_qq">QQ：{{ settings.blog_connect_qq }}</span><a v-if="settings.blog_connect_github" :href="String(settings.blog_connect_github)" target="_blank" rel="noreferrer">GitHub <UiIcon name="arrow-right" /></a><NuxtLink v-if="!hasContact" to="/guestbook">通过联系表单联系我 <UiIcon name="arrow-right" /></NuxtLink>
       </div></div>
       <img v-if="settings.blog_connect_wx_image" class="contact-qr" :src="settings.blog_connect_wx_image" alt="微信二维码" width="150" height="150" loading="lazy" decoding="async">
     </section>

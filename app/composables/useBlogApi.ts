@@ -1,5 +1,5 @@
 import type { ApiResponse, BlogProject, Link, PaginatedArticles, SiteNavItem, SiteSetting, Tag, Category } from '~/types/api'
-import { normalizeArticle } from '~/utils/blog'
+import { normalizeArticle } from '~/utils/article'
 
 async function request<T>(path: string, options: Record<string, unknown> = {}) {
   const response = await $fetch<ApiResponse<T>>(`/api/${path}`, options)
@@ -36,6 +36,7 @@ export function useBlogApi() {
     weatherInfo: async (cityCode: string) => request<any>('tools/weatherInfo', { method: 'POST', body: { cityCode } }),
     identifyIpArea: async (ip?: string) => request<any>('tools/identifyIpArea', { method: 'POST', body: ip ? { ip } : {} }),
     like: async (articleId: number) => request<unknown>('articles/likes', { method: 'POST', body: { id: articleId } }),
+    submitComment: async (body: Record<string, unknown>) => request<unknown>('comments/comment', { method: 'POST', body }),
     submitMessage: async (body: Record<string, unknown>) => request<unknown>('message/messages', { method: 'POST', body }),
   }
 }

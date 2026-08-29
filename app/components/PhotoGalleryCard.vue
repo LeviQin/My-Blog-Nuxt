@@ -37,7 +37,7 @@
 
 <script setup lang="ts">
 import type { Article, Tag } from '~/types/api'
-import { articleDate, articleImage, resolveArticleTags } from '~/utils/blog'
+import { articleDate, articleImage, resolveArticleTags } from '~/utils/article'
 
 const props = defineProps<{
   article: Article

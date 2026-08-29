@@ -9,7 +9,11 @@
       <img src="/images/ui/handmade/icon-lab-flask-real.svg" alt="" width="112" height="128" aria-hidden="true">
     </header>
 
-    <section class="lab-directory" aria-labelledby="lab-directory-title">
+    <nav class="lab-view-tabs" aria-label="实验室内容">
+      <button v-for="view in labViews" :key="view.id" type="button" :class="{ active: activeLabView === view.id }" :aria-pressed="activeLabView === view.id" @click="activeLabView = view.id"><span>{{ view.label }}</span><small>{{ view.description }}</small></button>
+    </nav>
+
+    <section v-show="activeLabView === 'tools'" class="lab-directory" aria-labelledby="lab-directory-title">
       <div class="lab-directory-heading">
         <div><p class="card-kicker">01 · LITTLE TOOLS</p><h2 id="lab-directory-title">把图片、文字和灵感整理成一页</h2><p>从图片、查询到开发者便签，选择一个小工具开始。需要联网的查询会在入口处明确说明。</p></div>
         <span class="lab-processing-badge is-local">{{ v1Tools.length }} 个小工具 · 即开即用</span>
@@ -33,7 +37,7 @@
       </div>
     </section>
 
-    <section class="lab-rewards-card" aria-labelledby="lab-rewards-title">
+    <section v-show="activeLabView === 'collection'" class="lab-rewards-card" aria-labelledby="lab-rewards-title">
       <div class="lab-section-title"><div><p class="card-kicker">my journal collection</p><h2 id="lab-rewards-title">我的手账收藏</h2></div><span>{{ rewardState.completedArticleIds.length }} 篇已读</span></div>
       <div class="reward-grid">
         <article v-for="reward in rewards" :key="reward.id" class="reward-card" :class="{ unlocked: rewardState.unlockedRewardIds.includes(reward.id) }"><img :src="reward.image" :alt="rewardState.unlockedRewardIds.includes(reward.id) ? reward.name : '未解锁奖励'" width="46" height="46"><div><strong>{{ reward.name }}</strong><small>{{ reward.description }}</small></div><span class="reward-status">{{ rewardState.unlockedRewardIds.includes(reward.id) ? '已获得' : `还差 ${Math.max(0, reward.threshold - rewardState.completedArticleIds.length)} 篇` }}</span></article>
@@ -41,7 +45,7 @@
       <button class="text-button" type="button" @click="clearRewards">清空本地阅读记录</button>
     </section>
 
-    <div class="lab-grid">
+    <div v-show="activeLabView === 'studio'" class="lab-grid">
       <section class="lab-card palette-lab" aria-labelledby="palette-title">
         <div class="lab-section-title lab-workbench-heading"><div><p class="card-kicker">01 · paper palette</p><h2 id="palette-title">手账纸张调色台</h2><p class="lab-section-description">先选一套基调，再微调纸张、圆角和阴影，看看它们组合后的真实效果。</p></div><div class="lab-heading-actions"><span>实时预览</span><button class="text-button" type="button" @click="resetPalette">恢复默认</button></div></div>
         <div class="palette-workbench">
@@ -89,7 +93,7 @@
       </section>
     </div>
 
-    <section class="lab-card article-map-lab" aria-labelledby="map-title">
+    <section v-show="activeLabView === 'garden'" class="lab-card article-map-lab" aria-labelledby="map-title">
       <div class="lab-section-title"><div><p class="card-kicker">03 · article garden</p><h2 id="map-title">文章关系地图</h2></div><span>SVG · {{ articles.length }} 篇文章</span></div>
       <div v-if="articles.length" class="article-garden-shell">
         <div class="garden-toolbar">
@@ -135,8 +139,15 @@
 <script setup lang="ts">
 import type { Article, Category, Tag } from '~/types/api'
 import { v1LabTools } from '~/data/lab-tools'
-import { articleDate, normalizeTag } from '~/utils/blog'
+import { articleDate, normalizeTag } from '~/utils/article'
 const v1Tools = v1LabTools
+const labViews = [
+  { id: 'tools', label: '工具目录', description: `${v1Tools.length} 个工具` },
+  { id: 'collection', label: '手账收藏', description: '阅读记录' },
+  { id: 'studio', label: '创作实验', description: '调色与 Markdown' },
+  { id: 'garden', label: '文章花园', description: '分类关系' },
+] as const
+const activeLabView = ref<(typeof labViews)[number]['id']>('tools')
 function labToolIconStyle(icon: string) {
   return icon.startsWith('/') ? { backgroundImage: `url(${icon})`, backgroundSize: 'contain', backgroundPosition: 'center' } : undefined
 }
@@ -225,7 +236,7 @@ const activePreset = ref(defaultPalette.id)
 const paletteSaved = ref(false)
 const paletteStorageKey = 'levi-blog:lab-palette:v1'
 let applyingPreset = false
-let paletteSavedTimer: ReturnType<typeof setTimeout> | null = null
+let paletteSavedTimer: number | null = null
 const activePresetName = computed(() => activePreset.value === 'custom' ? '自定义方案' : palettePresets.find((preset) => preset.id === activePreset.value)?.name || '自定义方案')
 const copied = ref(false)
 const paletteStyle = computed(() => ({

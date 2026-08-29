@@ -7,6 +7,8 @@
     "dev": "node node_modules/nuxt/bin/nuxt.mjs dev --port 3006",
     "generate": "node node_modules/nuxt/bin/nuxt.mjs generate",
     "preview": "node node_modules/nuxt/bin/nuxt.mjs preview",
+    "typecheck": "node node_modules/nuxt/bin/nuxt.mjs typecheck",
+    "check": "npm run typecheck && npm run build",
     "postinstall": "node node_modules/nuxt/bin/nuxt.mjs prepare"
   },
   "dependencies": {
@@ -20,8 +22,10 @@
     "vue": "^3.5.34",
     "vue-router": "^5.0.7"
   },
-  "packageManager": "yarn@1.22.22+sha512.a6b2f7906b721bba3d67d4aff083df04dad64c399707841b7acf00f6b133b7ac24255f2652fa22ae3534329dc6180534e98d17432037ff6fd140556e2bb3137e",
+  "packageManager": "npm@11.19.0",
   "devDependencies": {
-    "@types/qrcode": "^1.5.6"
+    "@types/qrcode": "^1.5.6",
+    "typescript": "5.9.3",
+    "vue-tsc": "^3.3.11"
   }
 }

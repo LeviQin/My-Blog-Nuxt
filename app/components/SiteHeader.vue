@@ -11,7 +11,7 @@
         </NuxtLink>
       </div>
       <nav id="site-navigation" class="site-nav" :class="{ 'is-open': open }" aria-label="主导航">
-        <NuxtLink v-for="item in navItems" :key="item.to" :to="item.to" @click="open = false">{{ item.label }}</NuxtLink>
+        <NuxtLink v-for="item in navItems" :key="item.to" :to="item.to" :no-prefetch="item.to === '/lab'" @click="open = false">{{ item.label }}</NuxtLink>
       </nav>
       <div class="header-actions">
         <button
@@ -25,7 +25,7 @@
         >
           <img src="/images/ui/handmade/magnifier.webp" alt="" width="25" height="25" decoding="async">
         </button>
-        <button class="theme-button" type="button" :aria-label="theme === 'light' ? '切换深色主题' : '切换浅色主题'" @click="toggleTheme"><img :src="theme === 'light' ? '/images/ui/handmade/moon.webp' : '/images/ui/handmade/sun.webp'" alt="" width="25" height="25" decoding="async"></button>
+        <button ref="themeTrigger" class="theme-button" :class="{ 'is-animating': themeTransition }" type="button" :disabled="Boolean(themeTransition)" :aria-label="theme === 'light' ? '切换深色主题' : '切换浅色主题'" @click="runThemeTransition"><img :src="theme === 'light' ? '/images/ui/handmade/moon.webp' : '/images/ui/handmade/sun.webp'" alt="" width="25" height="25" decoding="async"></button>
         <button class="menu-button" :class="{ 'is-open': open }" type="button" :aria-expanded="open" :aria-label="open ? '关闭导航' : '打开导航'" aria-controls="site-navigation" @click="open = !open">
           <span class="menu-icon" aria-hidden="true">
             <span class="menu-icon-line"></span>
@@ -47,10 +47,16 @@
       </div>
     </Transition>
   </Teleport>
+  <Teleport to="body">
+    <div v-if="themeTransition" class="theme-transition-layer" aria-hidden="true">
+      <span class="theme-transition-wipe" :class="`to-${themeTransition}`" :style="themeTransitionStyle" />
+      <img class="theme-flying-icon" :src="themeTransition === 'dark' ? '/images/ui/handmade/moon.webp' : '/images/ui/handmade/sun.webp'" alt="" width="38" height="38" :style="themeTransitionStyle">
+    </div>
+  </Teleport>
   <Transition name="secret-note">
     <div v-if="secretOpen" class="secret-note-backdrop" role="presentation" @click.self="secretOpen = false">
       <section class="secret-note" role="dialog" aria-modal="true" aria-labelledby="secret-note-title">
-        <button class="secret-note-close" type="button" aria-label="关闭隐藏手账" @click="secretOpen = false">×</button>
+        <button class="secret-note-close" type="button" aria-label="关闭隐藏手账" @click="secretOpen = false"><UiIcon name="close" /></button>
         <p class="card-kicker">a little secret</p>
         <h2 id="secret-note-title">给偶然翻到这页的人</h2>
         <p>谢谢你在这里停留。这个博客不只记录代码，也收集一些风、树影、咖啡和还没写完的想法。</p>
@@ -71,6 +77,11 @@ const searchLayerTop = ref(0)
 const searchTrigger = ref<HTMLButtonElement>()
 const searchInput = ref<HTMLInputElement>()
 const { theme, toggleTheme } = useTheme()
+const themeTrigger = ref<HTMLButtonElement>()
+const themeTransition = ref<'light' | 'dark' | null>(null)
+const themeTransitionStyle = reactive<Record<string, string>>({ '--theme-x': '50vw', '--theme-y': '48px' })
+let themeToggleTimer: number | null = null
+let themeCleanupTimer: number | null = null
 const { settings } = useSiteSettings()
 const router = useRouter()
 const secretOpen = ref(false)
@@ -99,6 +110,23 @@ function toggleSearch() {
 }
 function submitSearch() { const value = keyword.value.trim(); if (value) router.push({ path: '/search', query: { keyword: value } }); closeSearch() }
 
+function runThemeTransition() {
+  if (themeTransition.value) return
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    toggleTheme()
+    return
+  }
+
+  const rect = themeTrigger.value?.getBoundingClientRect()
+  if (rect) {
+    themeTransitionStyle['--theme-x'] = `${rect.left + rect.width / 2}px`
+    themeTransitionStyle['--theme-y'] = `${rect.top + rect.height / 2}px`
+  }
+  themeTransition.value = theme.value === 'light' ? 'dark' : 'light'
+  themeToggleTimer = window.setTimeout(toggleTheme, 340)
+  themeCleanupTimer = window.setTimeout(() => { themeTransition.value = null }, 760)
+}
+
 function updateSearchPosition() {
   const rect = searchTrigger.value?.getBoundingClientRect()
   if (rect) searchLayerTop.value = rect.bottom + 10
@@ -118,5 +146,7 @@ onMounted(() => {
 onBeforeUnmount(() => {
   window.removeEventListener('keydown', closeSecretOnEscape)
   window.removeEventListener('resize', updateSearchPosition)
+  if (themeToggleTimer) window.clearTimeout(themeToggleTimer)
+  if (themeCleanupTimer) window.clearTimeout(themeCleanupTimer)
 })
 </script>
