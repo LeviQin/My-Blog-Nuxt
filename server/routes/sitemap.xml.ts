@@ -74,7 +74,7 @@ export default defineEventHandler(async (event) => {
   if (moduleEnabled('show_category_module')) {
     for (const category of categories) {
       const slug = String(category?.slug || '').trim()
-      if (slug) add(`/category/${encodeURIComponent(slug)}`)
+      if (slug && slug !== 'daily') add(`/category/${encodeURIComponent(slug)}`)
     }
   }
   for (const tag of tags) {

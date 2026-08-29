@@ -309,6 +309,7 @@ useBlogSeo({
   title: category.name,
   description: () =>
     String(remoteCategory?.description || `浏览 ${category.name} 分类下的文章。`).trim(),
+  robots: () => (isDaily.value ? "noindex,nofollow,noarchive" : undefined),
   breadcrumbs: () => [
     { name: "首页", path: "/" },
     { name: "文章分类", path: "/archive" },

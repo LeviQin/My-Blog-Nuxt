@@ -7,6 +7,14 @@ export default defineNuxtConfig({
 
   ssr: true,
 
+  routeRules: {
+    '/category/daily': {
+      headers: {
+        'X-Robots-Tag': 'noindex, nofollow, noarchive',
+      },
+    },
+  },
+
   typescript: {
     tsConfig: {
       compilerOptions: {
