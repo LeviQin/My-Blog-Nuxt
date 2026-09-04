@@ -42,14 +42,44 @@ export default defineEventHandler(async (event): Promise<unknown> => {
       requestOptions,
     )
   }
-  catch (error: any) {
+  catch (error: unknown) {
+    const { statusCode, statusMessage, data } = getProxyErrorDetails(error)
     throw createError({
-      statusCode: error?.response?.status || error?.statusCode || 502,
-      statusMessage: error?.data?.message || '博客服务暂时不可用',
-      data: error?.data,
+      statusCode,
+      statusMessage,
+      ...(data === undefined ? {} : { data }),
     })
   }
 })
+
+function asRecord(value: unknown): Record<string, unknown> | undefined {
+  return value && typeof value === 'object' ? value as Record<string, unknown> : undefined
+}
+
+function asStatusCode(value: unknown): number | undefined {
+  const statusCode = Number(value)
+  return Number.isInteger(statusCode) && statusCode >= 400 && statusCode <= 599 ? statusCode : undefined
+}
+
+function asMessage(value: unknown): string | undefined {
+  const message = typeof value === 'string' ? value.trim() : ''
+  return message || undefined
+}
+
+function getProxyErrorDetails(error: unknown) {
+  const errorRecord = asRecord(error)
+  const response = asRecord(errorRecord?.response)
+  const responseData = response?._data
+  const data = responseData === undefined ? errorRecord?.data : responseData
+  const dataRecord = asRecord(data)
+  const statusCode = asStatusCode(response?.status) || asStatusCode(errorRecord?.statusCode) || 502
+  const statusMessage = asMessage(dataRecord?.message)
+    || asMessage(response?.statusText)
+    || asMessage(errorRecord?.statusMessage)
+    || (error instanceof Error ? asMessage(error.message) : undefined)
+    || '博客服务暂时不可用'
+  return { statusCode, statusMessage, data }
+}
 
 function normalizeAddress(value: unknown) {
   return String(value || '').replace(/^::ffff:/i, '').trim()
@@ -70,7 +100,10 @@ function getDockerHostGateway() {
       .map(line => line.trim().split(/\s+/))
       .find(fields => fields[1] === '00000000' && /^[0-9a-fA-F]{8}$/.test(fields[2] || ''))
     if (!defaultRoute) return ''
-    return defaultRoute[2].match(/../g)?.reverse().map(part => String(parseInt(part, 16))).join('.') || ''
+    const gatewayHex = defaultRoute[2]
+    if (!gatewayHex) return ''
+    const gatewayParts = gatewayHex.match(/../g)
+    return gatewayParts ? gatewayParts.reverse().map(part => String(parseInt(part, 16))).join('.') : ''
   } catch {
     return ''
   }
