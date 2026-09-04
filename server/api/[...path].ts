@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs'
 import { isIP } from 'node:net'
 
 export default defineEventHandler(async (event): Promise<unknown> => {
@@ -55,8 +56,24 @@ function normalizeAddress(value: unknown) {
 }
 
 function getTrustedProxyEntries() {
-  const configured = process.env.NUXT_TRUSTED_PROXY_IPS || process.env.TRUSTED_PROXY_IPS || '127.0.0.1,::1,::ffff:127.0.0.1'
-  return configured.split(',').map(normalizeAddress).filter(Boolean)
+  const configured = String(process.env.NUXT_TRUSTED_PROXY_IPS || process.env.TRUSTED_PROXY_IPS || '').trim()
+  if (configured) return configured.split(',').map(normalizeAddress).filter(Boolean)
+  const defaults = ['127.0.0.1', '::1', '::ffff:127.0.0.1']
+  const dockerHostGateway = getDockerHostGateway()
+  return dockerHostGateway ? [...defaults, dockerHostGateway] : defaults
+}
+
+function getDockerHostGateway() {
+  if (process.platform !== 'linux') return ''
+  try {
+    const defaultRoute = readFileSync('/proc/net/route', 'utf8').split(/\r?\n/).slice(1)
+      .map(line => line.trim().split(/\s+/))
+      .find(fields => fields[1] === '00000000' && /^[0-9a-fA-F]{8}$/.test(fields[2] || ''))
+    if (!defaultRoute) return ''
+    return defaultRoute[2].match(/../g)?.reverse().map(part => String(parseInt(part, 16))).join('.') || ''
+  } catch {
+    return ''
+  }
 }
 
 function ipv4ToNumber(value: string) {
@@ -82,7 +99,7 @@ function isTrustedProxy(address: string) {
 }
 
 function getTrustedClientIp(event: any) {
-  const socketIp = normalizeAddress(getRequestIP(event))
+  const socketIp = normalizeAddress(event?.node?.req?.socket?.remoteAddress || event?.node?.req?.connection?.remoteAddress)
   if (!socketIp) return ''
   if (!isTrustedProxy(socketIp)) return socketIp
   const candidates = [

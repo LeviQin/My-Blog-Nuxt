@@ -84,7 +84,8 @@ NUXT_API_BASE=http://127.0.0.1:3000
 # 网站公开访问地址，用于 SEO 和 Open Graph 信息
 NUXT_PUBLIC_SITE_URL=http://localhost:3006
 
-# Nuxt 前面的反向代理或容器网段；生产环境写入 /www/env/my-blog-nuxt.env
+# Nuxt 前面的反向代理或容器网段；生产环境写入 /www/env/my-blog-nuxt.env。
+# 未设置时会自动信任 Docker 容器默认网关；独立代理容器仍应在此显式配置。
 NUXT_TRUSTED_PROXY_IPS=127.0.0.1,::1,172.24.0.1
 ```
 
