@@ -42,10 +42,12 @@ const { data, error } = await useAsyncData(`tag-${tagId}`, async () => {
     api.tags(),
     api.articlesPage({ tag: tagId, page: String(page.value), pageSize: '12' }),
   ])
-  const tags = results[0].status === 'fulfilled' ? results[0].value : []
+  if (results[0].status !== 'fulfilled') throw createError({ statusCode: 503, statusMessage: '标签服务暂时不可用' })
+  if (results[1].status !== 'fulfilled') throw createError({ statusCode: 503, statusMessage: '标签内容暂时不可用' })
+  const tags = results[0].value
   const tag = tags.find((item) => String(item.id) === tagId)
   if (!tag) throw createError({ statusCode: 404, statusMessage: '标签不存在' })
-  const articles = results[1].status === 'fulfilled' ? results[1].value : { items: [], total: 0, page: page.value, pageSize: 12, totalPages: 0 }
+  const articles = results[1].value
   return {
     tag,
     tags,

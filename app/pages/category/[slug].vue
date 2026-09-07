@@ -171,7 +171,9 @@ import { articleDate, articleImage, resolveArticleTags } from "~/utils/article";
 
 const route = useRoute();
 const api = useBlogApi();
-const remoteCategories = await api.categories().catch(() => []);
+const remoteCategories = await api.categories().catch(() => {
+  throw createError({ statusCode: 503, statusMessage: "分类服务暂时不可用" });
+});
 const remoteCategory = remoteCategories.find(
   (item) => item.slug === String(route.params.slug)
 );
@@ -186,8 +188,8 @@ const category = remoteCategory
   : undefined;
 if (!category) throw createError({ statusCode: 404, statusMessage: "分类不存在" });
 
-const { data } = await useAsyncData(`category-${category.slug}`, async () => {
-  const [articleResult, tagResult] = await Promise.allSettled([
+const { data, error } = await useAsyncData(`category-${category.slug}`, async () => {
+  const [articles, tags] = await Promise.all([
     api.articles({
       category: category.value,
       ...(category.slug === "daily" ? { include_gallery: "1" } : {}),
@@ -195,10 +197,11 @@ const { data } = await useAsyncData(`category-${category.slug}`, async () => {
     api.tags(),
   ]);
   return {
-    articles: articleResult.status === "fulfilled" ? articleResult.value : [],
-    tags: tagResult.status === "fulfilled" ? tagResult.value : [],
+    articles,
+    tags,
   };
 });
+if (error.value) throw createError({ statusCode: 503, statusMessage: "分类内容暂时不可用" });
 const articles = computed(() => (data.value?.articles || []) as Article[]);
 const { settings } = useSiteSettings();
 const tagItems = computed(() => (data.value?.tags || []) as Tag[]);

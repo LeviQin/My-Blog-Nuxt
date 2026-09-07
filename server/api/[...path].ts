@@ -1,11 +1,47 @@
 import { readFileSync } from 'node:fs'
 import { isIP } from 'node:net'
 
+const PUBLIC_READ_CACHE_TTL = 60_000
+const PUBLIC_READ_CACHE_MAX_ENTRIES = 100
+const PUBLIC_READ_CACHE_PATHS = new Set([
+  'articles/article',
+  'articles/categories',
+  'articles/statistics',
+  'articles/tags',
+  'blog-projects/projects',
+  'blog-setting/settings',
+  'frontEnd/siteNav',
+  'links/link',
+])
+const publicReadCache = new Map<string, { expiresAt: number; value: unknown }>()
+
+function setPublicReadCache(key: string, value: unknown) {
+  const now = Date.now()
+  for (const [entryKey, entry] of publicReadCache) {
+    if (entry.expiresAt <= now) publicReadCache.delete(entryKey)
+  }
+  while (publicReadCache.size >= PUBLIC_READ_CACHE_MAX_ENTRIES) {
+    const oldestKey = publicReadCache.keys().next().value
+    if (oldestKey === undefined) break
+    publicReadCache.delete(oldestKey)
+  }
+  publicReadCache.set(key, { expiresAt: now + PUBLIC_READ_CACHE_TTL, value })
+}
+
 export default defineEventHandler(async (event): Promise<unknown> => {
   const config = useRuntimeConfig(event)
 
   const routePath = getRouterParam(event, 'path') || ''
   const method = getMethod(event)
+  const authorization = getHeader(event, 'authorization')
+  const cacheKey = method === 'GET' && !authorization && PUBLIC_READ_CACHE_PATHS.has(routePath)
+    ? `${routePath}${getRequestURL(event).search}`
+    : ''
+  if (cacheKey) {
+    const cached = publicReadCache.get(cacheKey)
+    if (cached && cached.expiresAt > Date.now()) return cached.value
+    if (cached) publicReadCache.delete(cacheKey)
+  }
 
   const requestOptions: Record<string, unknown> = {
     method,
@@ -26,8 +62,6 @@ export default defineEventHandler(async (event): Promise<unknown> => {
     ;(requestOptions.headers as Record<string, string>)['x-real-ip'] = clientIp
   }
 
-  const authorization = getHeader(event, 'authorization')
-
   if (authorization) {
     ;(requestOptions.headers as Record<string, string>).authorization = authorization
   }
@@ -37,10 +71,12 @@ export default defineEventHandler(async (event): Promise<unknown> => {
   }
 
   try {
-    return await $fetch<unknown>(
+    const response = await $fetch<unknown>(
       `${config.apiBase}/api/${routePath}`,
       requestOptions,
     )
+    if (cacheKey) setPublicReadCache(cacheKey, response)
+    return response
   }
   catch (error: unknown) {
     const { statusCode, statusMessage, data } = getProxyErrorDetails(error)

@@ -3,6 +3,11 @@ interface ApiEnvelope<T> {
   data?: T
 }
 
+interface ApiResult<T> {
+  ok: boolean
+  data?: T
+}
+
 function escapeXml(value: string) {
   return value.replace(/[<>&'\"]/g, (character) => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;', "'": '&apos;', '"': '&quot;' })[character] || character)
 }
@@ -14,6 +19,25 @@ function asDate(value: unknown) {
 
 function articleLastmod(article: any) {
   return article?.content_updated_at || article?.published_at
+}
+
+function isEnabled(value: unknown) {
+  return value === undefined || value === null || value === '' || value === true || value === 1 || value === '1'
+}
+
+function isPublicArticle(article: any) {
+  if (!isEnabled(article?.is_show)) return false
+  if (article?.deleted_at) return false
+  const status = String(article?.status || '').trim().toLowerCase()
+  if (status && status !== 'published') return false
+  const visibility = String(article?.visibility || '').trim().toLowerCase()
+  if (visibility && visibility !== 'public') return false
+  const scheduledAt = String(article?.scheduled_at || '').trim()
+  if (scheduledAt) {
+    const scheduledTime = new Date(scheduledAt).getTime()
+    if (!Number.isFinite(scheduledTime) || scheduledTime > Date.now()) return false
+  }
+  return true
 }
 
 export default defineEventHandler(async (event) => {
@@ -28,21 +52,29 @@ export default defineEventHandler(async (event) => {
   add('/archive')
   add('/portfolio')
 
-  async function fetchApi<T>(path: string) {
+  async function fetchApi<T>(path: string): Promise<ApiResult<T>> {
     try {
       const response = await $fetch<ApiEnvelope<T>>(`${apiBase}/api/${path}`, { timeout: 5000 })
-      return response?.code === 200 ? response.data : undefined
+      return response?.code === 200 ? { ok: true, data: response.data } : { ok: false }
     } catch {
-      return undefined
+      return { ok: false }
     }
   }
 
-  const [articleData, categoryData, tagData, settingData] = await Promise.all([
+  const [articleResult, categoryResult, tagResult, settingResult] = await Promise.all([
     fetchApi<any[]>('articles/article'),
     fetchApi<any[]>('articles/categories'),
     fetchApi<any[]>('articles/tags'),
     fetchApi<Record<string, unknown> | Array<Record<string, unknown>>>('blog-setting/settings?key=levi-blog'),
   ])
+  if (![articleResult, categoryResult, tagResult, settingResult].every(result => result.ok)) {
+    setResponseHeader(event, 'cache-control', 'no-store')
+    throw createError({ statusCode: 503, statusMessage: '站点索引数据暂时不可用' })
+  }
+  const articleData = articleResult.data
+  const categoryData = categoryResult.data
+  const tagData = tagResult.data
+  const settingData = settingResult.data
   const settings = Array.isArray(settingData) ? settingData[0] || {} : settingData || {}
   const moduleEnabled = (key: string) => {
     const value = settings[key]
@@ -65,9 +97,9 @@ export default defineEventHandler(async (event) => {
     add('/lab/dev')
   }
   const articles = (Array.isArray(articleData) ? articleData : Array.isArray((articleData as any)?.items) ? (articleData as any).items : [])
-    .filter((article: any) => article?.is_show === undefined || article.is_show === true || Number(article.is_show) === 1)
+    .filter(isPublicArticle)
   const categories = (Array.isArray(categoryData) ? categoryData : [])
-    .filter((category: any) => category?.status === undefined || category.status === true || Number(category.status) === 1)
+    .filter((category: any) => isEnabled(category?.status) && Number(category?.article_count || 0) > 0)
   const tags = (Array.isArray(tagData) ? tagData : [])
     .filter((tag: any) => (tag?.status === undefined || tag.status === true || Number(tag.status) === 1) && Number(tag?.associated_article_count || tag?.article_count || tag?.count || 0) > 0)
 
@@ -87,6 +119,7 @@ export default defineEventHandler(async (event) => {
   }
 
   setResponseHeader(event, 'content-type', 'application/xml; charset=utf-8')
+  setResponseHeader(event, 'cache-control', 'public, max-age=600, s-maxage=600, stale-while-revalidate=86400')
   const body = [...urls.entries()].map(([loc, lastmod]) => `  <url><loc>${escapeXml(loc)}</loc>${lastmod ? `<lastmod>${lastmod}</lastmod>` : ''}</url>`).join('\n')
   return `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${body}\n</urlset>\n`
 })
