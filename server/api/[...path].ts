@@ -1,5 +1,6 @@
 import { readFileSync } from 'node:fs'
 import { isIP } from 'node:net'
+import { appendResponseHeader } from 'h3'
 
 const PUBLIC_READ_CACHE_TTL = 60_000
 const PUBLIC_READ_CACHE_MAX_ENTRIES = 100
@@ -33,6 +34,7 @@ export default defineEventHandler(async (event): Promise<unknown> => {
 
   const routePath = getRouterParam(event, 'path') || ''
   const method = getMethod(event)
+  const isAnalyticsEvent = method === 'POST' && routePath === 'analytics/events'
   const authorization = getHeader(event, 'authorization')
   const cacheKey = method === 'GET' && !authorization && PUBLIC_READ_CACHE_PATHS.has(routePath)
     ? `${routePath}${getRequestURL(event).search}`
@@ -56,6 +58,13 @@ export default defineEventHandler(async (event): Promise<unknown> => {
     ;(requestOptions.headers as Record<string, string>)['user-agent'] = userAgent
   }
 
+  if (isAnalyticsEvent) {
+    const cookie = getHeader(event, 'cookie')
+    if (cookie) {
+      ;(requestOptions.headers as Record<string, string>).cookie = cookie
+    }
+  }
+
   const clientIp = getTrustedClientIp(event)
   if (clientIp) {
     ;(requestOptions.headers as Record<string, string>)['x-forwarded-for'] = clientIp
@@ -71,12 +80,18 @@ export default defineEventHandler(async (event): Promise<unknown> => {
   }
 
   try {
-    const response = await $fetch<unknown>(
+    const response = await $fetch.raw<unknown>(
       `${config.apiBase}/api/${routePath}`,
       requestOptions,
     )
-    if (cacheKey) setPublicReadCache(cacheKey, response)
-    return response
+    const responseData = response._data
+    if (isAnalyticsEvent) {
+      const responseHeaders = response.headers as Headers & { getSetCookie?: () => string[] }
+      const setCookies = responseHeaders.getSetCookie?.() || []
+      for (const setCookie of setCookies) appendResponseHeader(event, 'set-cookie', setCookie)
+    }
+    if (cacheKey) setPublicReadCache(cacheKey, responseData)
+    return responseData
   }
   catch (error: unknown) {
     const { statusCode, statusMessage, data } = getProxyErrorDetails(error)

@@ -10,19 +10,14 @@ type AnalyticsPayload = {
 type QueuedEvent = {
   event_id: string
   event_name: AnalyticsEventName
-  visitor_id: string
-  session_id: string
   page_path: string
   article_id?: number
   referrer_host?: string
   properties?: Record<string, unknown>
 }
 
-const VISITOR_KEY = 'levi-blog-analytics-visitor-id'
-const SESSION_KEY = 'levi-blog-analytics-session-id'
-const SESSION_LAST_ACTIVE_KEY = 'levi-blog-analytics-session-last-active'
-const SESSION_TIMEOUT_MS = 30 * 60 * 1000
 const MAX_BATCH_SIZE = 25
+const MAX_QUEUE_SIZE = 200
 
 let queue: QueuedEvent[] = []
 let flushTimer: ReturnType<typeof setTimeout> | null = null
@@ -32,37 +27,6 @@ let hasTrackedInitialPageView = false
 function createId() {
   if (import.meta.client && globalThis.crypto?.randomUUID) return globalThis.crypto.randomUUID()
   return `${Date.now()}-${Math.random().toString(36).slice(2)}`
-}
-
-function getStorageId(type: 'local' | 'session', key: string) {
-  if (!import.meta.client) return ''
-  try {
-    const storage = type === 'local' ? window.localStorage : window.sessionStorage
-    const existing = storage.getItem(key)
-    if (existing) return existing
-    const value = createId()
-    storage.setItem(key, value)
-    return value
-  } catch {
-    return createId()
-  }
-}
-
-function getSessionId() {
-  if (!import.meta.client) return ''
-  try {
-    const now = Date.now()
-    const lastActive = Number(window.sessionStorage.getItem(SESSION_LAST_ACTIVE_KEY) || 0)
-    let sessionId = window.sessionStorage.getItem(SESSION_KEY) || ''
-    if (!sessionId || !lastActive || now - lastActive > SESSION_TIMEOUT_MS) {
-      sessionId = createId()
-      window.sessionStorage.setItem(SESSION_KEY, sessionId)
-    }
-    window.sessionStorage.setItem(SESSION_LAST_ACTIVE_KEY, String(now))
-    return sessionId
-  } catch {
-    return createId()
-  }
 }
 
 function getReferrerHost() {
@@ -76,6 +40,24 @@ function getReferrerHost() {
 
 function getCurrentPath() {
   return import.meta.client ? window.location.pathname : '/'
+}
+
+function isAutomatedBrowser() {
+  if (!import.meta.client) return false
+  try {
+    return navigator.webdriver === true
+  } catch {
+    return false
+  }
+}
+
+function isPreviewPage() {
+  if (!import.meta.client) return false
+  try {
+    return new URLSearchParams(window.location.search).has('preview')
+  } catch {
+    return false
+  }
 }
 
 export function useAnalytics() {
@@ -100,46 +82,50 @@ export function useAnalytics() {
         '/api/analytics/events',
         new Blob([JSON.stringify({ events })], { type: 'application/json' }),
       )
-      if (sent) return
-      queue.unshift(...events)
+      if (sent) {
+        if (queue.length) scheduleFlush(0)
+        return
+      }
+      queue = [...events, ...queue].slice(-MAX_QUEUE_SIZE)
     }
 
     flushing = true
     try {
       const sent = await send(events)
-      if (!sent) queue.unshift(...events)
+      if (!sent) {
+        queue = [...events, ...queue].slice(-MAX_QUEUE_SIZE)
+        scheduleFlush(5000)
+      }
     } finally {
       flushing = false
+      if (queue.length) scheduleFlush(queue.length >= MAX_BATCH_SIZE ? 0 : 3000)
     }
   }
 
-  const scheduleFlush = () => {
-    if (flushTimer || queue.length >= MAX_BATCH_SIZE) {
-      if (queue.length >= MAX_BATCH_SIZE) void flush()
-      return
-    }
+  const scheduleFlush = (delay = 3000) => {
+    if (flushTimer || !queue.length) return
     flushTimer = setTimeout(() => {
       flushTimer = null
       void flush()
-    }, 3000)
+    }, delay)
   }
 
   const track = (eventName: AnalyticsEventName, payload: AnalyticsPayload = {}) => {
-    if (!import.meta.client) return
+    if (!import.meta.client || import.meta.dev || isAutomatedBrowser() || isPreviewPage()) return
     const { page_path, article_id, referrer_host, ...properties } = payload
     const inferredReferrer = eventName === 'page_view' && !hasTrackedInitialPageView ? getReferrerHost() : ''
     queue.push({
       event_id: createId(),
       event_name: eventName,
-      visitor_id: getStorageId('local', VISITOR_KEY),
-      session_id: getSessionId(),
       page_path: String(page_path || getCurrentPath()).slice(0, 255),
       ...(Number.isInteger(article_id) && Number(article_id) > 0 ? { article_id: Number(article_id) } : {}),
       ...(referrer_host || inferredReferrer ? { referrer_host: String(referrer_host || inferredReferrer).slice(0, 255) } : {}),
       ...(Object.keys(properties).length ? { properties } : {}),
     })
+    if (queue.length > MAX_QUEUE_SIZE) queue.splice(0, queue.length - MAX_QUEUE_SIZE)
     if (eventName === 'page_view') hasTrackedInitialPageView = true
-    scheduleFlush()
+    if (queue.length >= MAX_BATCH_SIZE) void flush()
+    else scheduleFlush()
   }
 
   return { track, flush }

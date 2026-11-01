@@ -11,7 +11,9 @@ export default defineNuxtPlugin((nuxtApp) => {
       .filter(([, value]) => value))
   }
 
-  const trackPageView = (path: string) => {
+  const trackPageView = (route: { path: string, query?: Record<string, unknown> }) => {
+    const path = route.path
+    if (route.query && Object.prototype.hasOwnProperty.call(route.query, 'preview')) return
     if (!path || path === lastPath) return
     lastPath = path
     track('page_view', { page_path: path, ...(isFirstPageView ? getCampaignProperties() : {}) })
@@ -19,9 +21,9 @@ export default defineNuxtPlugin((nuxtApp) => {
   }
 
   nuxtApp.hook('app:mounted', () => {
-    trackPageView(router.currentRoute.value.path)
+    trackPageView(router.currentRoute.value)
   })
-  router.afterEach(to => trackPageView(to.path))
+  router.afterEach(to => trackPageView(to))
 
   const flushOnLeave = () => { void flush(true) }
   document.addEventListener('visibilitychange', () => {
