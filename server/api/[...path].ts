@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs'
 import { isIP } from 'node:net'
-import { appendResponseHeader } from 'h3'
+import { appendResponseHeader, getRequestProtocol } from 'h3'
 
 const PUBLIC_READ_CACHE_TTL = 60_000
 const PUBLIC_READ_CACHE_MAX_ENTRIES = 100
@@ -70,6 +70,7 @@ export default defineEventHandler(async (event): Promise<unknown> => {
     ;(requestOptions.headers as Record<string, string>)['x-forwarded-for'] = clientIp
     ;(requestOptions.headers as Record<string, string>)['x-real-ip'] = clientIp
   }
+  ;(requestOptions.headers as Record<string, string>)['x-forwarded-proto'] = getRequestProtocol(event)
 
   if (authorization) {
     ;(requestOptions.headers as Record<string, string>).authorization = authorization
